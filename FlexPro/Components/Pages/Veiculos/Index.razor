@@ -1,0 +1,46 @@
+@page "/veiculos"
+@using FlexPro.Models
+@inject IDialogService DialogService
+
+<MudText Typo="Typo.h2">Veiculos</MudText>
+<br><br><br>
+<MudButton @onclick="OpenDialogAsync" Variant="Variant.Filled" Color="Color.Primary">
+    Cadastrar Novo
+</MudButton>
+<br>
+<br>
+
+<MudDataGrid Items="@veiculos" T="Veiculo" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Lista de Veiculos</MudText>
+        <MudSpacer/>
+        <MudTextField Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Nome" Title="Nome" Sortable="true" Filterable="true" />
+        <PropertyColumn Property="x => x.Placa" Title="Placa" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Marca" Title="Marca" Sortable="true" Filterable="true"/>
+    </Columns>
+</MudDataGrid>
+
+
+@code {
+    private List<Veiculo> veiculos = new List<Veiculo>();
+    
+    protected override async Task OnInitializedAsync()
+    {
+
+        veiculos = new List<Veiculo>
+        {
+            new Veiculo { Nome = "Veículo 1", Placa = "ABC1234", Marca = "Marca A", ConsumoUrbanoAlcool = 8.5, ConsumoRodoviarioAlcool = 12.5, ConsumoUrbanoGasolina = 10, ConsumoRodoviarioGasolina = 15 },
+            new Veiculo { Nome = "Veículo 2", Placa = "DEF5678", Marca = "Marca B", ConsumoUrbanoAlcool = 9.0, ConsumoRodoviarioAlcool = 13.0, ConsumoUrbanoGasolina = 11, ConsumoRodoviarioGasolina = 16 },
+            new Veiculo { Nome = "Veículo 3", Placa = "GHI9101", Marca = "Marca C", ConsumoUrbanoAlcool = 7.5, ConsumoRodoviarioAlcool = 11.0, ConsumoUrbanoGasolina = 9, ConsumoRodoviarioGasolina = 14 }
+        };
+    }
+
+    private Task OpenDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        return DialogService.ShowAsync<Dialog>("Cadastro de Veículo", options);
+    }
+}
