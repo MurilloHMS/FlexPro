@@ -7,10 +7,6 @@
         <UserSecretsId>aspnet-FlexPro-506a987f-6bc7-4c93-bbee-5dd9065b8d81</UserSecretsId>
     </PropertyGroup>
 
-    <ItemGroup>
-        <None Update="Data\app.db" CopyToOutputDirectory="PreserveNewest" ExcludeFromSingleFile="true"/>
-    </ItemGroup>
-
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.*"/>
@@ -21,6 +17,7 @@
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
         <PackageReference Include="MudBlazor" Version="7.*"/>
         <PackageReference Include="Extensions.MudBlazor.StaticInput" Version="2.*"/>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />
     </ItemGroup>
 
 </Project>
