@@ -2,29 +2,43 @@
 
 @inject NavigationManager NavigationManager
 
-<MudNavMenu>
-    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-    <MudNavLink Href="counter" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Add">Counter</MudNavLink>
-    <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
-    <MudNavLink Href="auth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Lock">Auth Required</MudNavLink>
-    <AuthorizeView>
-        <Authorized>
-            <MudNavLink Href="Account/Manage" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
-            <form action="Account/Logout" method="post">
-                <AntiforgeryToken/>
-                <input type="hidden" name="ReturnUrl" value="@currentUrl"/>
-                <button type="submit" class="mud-nav-link mud-ripple">
-                    <MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Info" Class="mr-3"></MudIcon> Logout
-                </button>
-            </form>
-        </Authorized>
-        <NotAuthorized>
-            <MudNavLink Href="Account/Register" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Register</MudNavLink>
-            <MudNavLink Href="Account/Login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Password">Login</MudNavLink>
-        </NotAuthorized>
-    </AuthorizeView>
-</MudNavMenu>
-
+<MudPaper Elevation="0" Class="py-3">
+    <MudNavMenu Color="Color.Primary">
+        <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Página Inicial</MudNavLink>
+        <MudNavGroup Title="Cadastros" Expanded="false" Icon="@Icons.Material.Filled.Add">
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.DirectionsCar">Veículos</MudNavLink>
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Group">Funcionários</MudNavLink>
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Category">Categorias</MudNavLink>
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Business">Entidades</MudNavLink>
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.CarRepair">Revisões</MudNavLink>
+        </MudNavGroup>
+        <MudNavGroup Title="Ferramentas" Expanded="false" Icon="@Icons.Material.Filled.Build">
+            <MudNavLink Href="/" Icon="@Icons.Custom.FileFormats.FilePdf">Separar PDF</MudNavLink>
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.EmojiTransportation">Calcular Transportadoras</MudNavLink>
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Calculate">Calcular Dados ICMS</MudNavLink>
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.LocalGasStation">Coletar Abastecimentos</MudNavLink>
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.CreditCard">Separar Dados Cartões</MudNavLink>
+        </MudNavGroup>
+        <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
+        <MudNavLink Href="auth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Lock">Auth Required</MudNavLink>
+        <AuthorizeView>
+            <Authorized>
+                <MudNavLink Href="Account/Manage" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
+                <form action="Account/Logout" method="post">
+                    <AntiforgeryToken/>
+                    <input type="hidden" name="ReturnUrl" value="@currentUrl"/>
+                    <button type="submit" class="mud-nav-link mud-ripple">
+                        <MudIcon Icon="@Icons.Material.Filled.Logout" Color="Color.Info" Class="mr-3"></MudIcon> Logout
+                    </button>
+                </form>
+            </Authorized>
+            <NotAuthorized>
+                <MudNavLink Href="Account/Register" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">Register</MudNavLink>
+                <MudNavLink Href="Account/Login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Password">Login</MudNavLink>
+            </NotAuthorized>
+        </AuthorizeView>
+    </MudNavMenu>
+</MudPaper>
 
 @code {
     private string? currentUrl;
