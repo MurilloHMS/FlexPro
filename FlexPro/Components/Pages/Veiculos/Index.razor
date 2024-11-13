@@ -1,9 +1,12 @@
 @page "/veiculos"
 @using FlexPro.Data
 @using FlexPro.Models
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @inject IDialogService DialogService
 @inject ApplicationDbContext _context
+
+@attribute [Authorize]
 
 <MudText Typo="Typo.h2">Veiculos</MudText>
 <br><br><br>

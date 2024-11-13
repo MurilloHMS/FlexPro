@@ -5,21 +5,22 @@
 <MudPaper Elevation="0" Class="py-3">
     <MudNavMenu Color="Color.Primary">
         <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Página Inicial</MudNavLink>
-        <MudNavGroup Title="Cadastros" Expanded="false" Icon="@Icons.Material.Filled.Add">
-            <MudNavLink Href="/veiculos" Icon="@Icons.Material.Filled.DirectionsCar">Veículos</MudNavLink>
-            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Group">Funcionários</MudNavLink>
-            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Category">Categorias</MudNavLink>
-            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Business">Entidades</MudNavLink>
-            <MudNavLink Href="/" Icon="@Icons.Material.Filled.CarRepair">Revisões</MudNavLink>
-        </MudNavGroup>
-        <MudNavGroup Title="Ferramentas" Expanded="false" Icon="@Icons.Material.Filled.Build">
-            <MudNavLink Href="/" Icon="@Icons.Custom.FileFormats.FilePdf">Separar PDF</MudNavLink>
-            <MudNavLink Href="/" Icon="@Icons.Material.Filled.EmojiTransportation">Calcular Transportadoras</MudNavLink>
-            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Calculate">Calcular Dados ICMS</MudNavLink>
-            <MudNavLink Href="/" Icon="@Icons.Material.Filled.LocalGasStation">Coletar Abastecimentos</MudNavLink>
-            <MudNavLink Href="/" Icon="@Icons.Material.Filled.CreditCard">Separar Dados Cartões</MudNavLink>
-        </MudNavGroup>
-        <MudNavLink Href="weather" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.List">Weather</MudNavLink>
+        <AuthorizeView>
+            <MudNavGroup Title="Cadastros" Expanded="false" Icon="@Icons.Material.Filled.Add">
+                <MudNavLink Href="/veiculos" Icon="@Icons.Material.Filled.DirectionsCar">Veículos</MudNavLink>
+                <MudNavLink Href="/" Icon="@Icons.Material.Filled.Group">Funcionários</MudNavLink>
+                <MudNavLink Href="/" Icon="@Icons.Material.Filled.Category">Categorias</MudNavLink>
+                <MudNavLink Href="/" Icon="@Icons.Material.Filled.Business">Entidades</MudNavLink>
+                <MudNavLink Href="/" Icon="@Icons.Material.Filled.CarRepair">Revisões</MudNavLink>
+            </MudNavGroup>
+            <MudNavGroup Title="Ferramentas" Expanded="false" Icon="@Icons.Material.Filled.Build">
+                <MudNavLink Href="/" Icon="@Icons.Custom.FileFormats.FilePdf">Separar PDF</MudNavLink>
+                <MudNavLink Href="/" Icon="@Icons.Material.Filled.EmojiTransportation">Calcular Transportadoras</MudNavLink>
+                <MudNavLink Href="/" Icon="@Icons.Material.Filled.Calculate">Calcular Dados ICMS</MudNavLink>
+                <MudNavLink Href="/" Icon="@Icons.Material.Filled.LocalGasStation">Coletar Abastecimentos</MudNavLink>
+                <MudNavLink Href="/" Icon="@Icons.Material.Filled.CreditCard">Separar Dados Cartões</MudNavLink>
+            </MudNavGroup>
+        </AuthorizeView>
         <MudNavLink Href="auth" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Lock">Auth Required</MudNavLink>
         <AuthorizeView>
             <Authorized>
