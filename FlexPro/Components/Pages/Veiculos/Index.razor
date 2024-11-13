@@ -1,6 +1,9 @@
 @page "/veiculos"
+@using FlexPro.Data
 @using FlexPro.Models
+@using Microsoft.EntityFrameworkCore
 @inject IDialogService DialogService
+@inject ApplicationDbContext _context
 
 <MudText Typo="Typo.h2">Veiculos</MudText>
 <br><br><br>
@@ -25,17 +28,18 @@
 
 
 @code {
-    private List<Veiculo> veiculos = new List<Veiculo>();
+    private IEnumerable<Veiculo> veiculos;
     
     protected override async Task OnInitializedAsync()
     {
-
-        veiculos = new List<Veiculo>
+        try
         {
-            new Veiculo { Nome = "Veículo 1", Placa = "ABC1234", Marca = "Marca A", ConsumoUrbanoAlcool = 8.5, ConsumoRodoviarioAlcool = 12.5, ConsumoUrbanoGasolina = 10, ConsumoRodoviarioGasolina = 15 },
-            new Veiculo { Nome = "Veículo 2", Placa = "DEF5678", Marca = "Marca B", ConsumoUrbanoAlcool = 9.0, ConsumoRodoviarioAlcool = 13.0, ConsumoUrbanoGasolina = 11, ConsumoRodoviarioGasolina = 16 },
-            new Veiculo { Nome = "Veículo 3", Placa = "GHI9101", Marca = "Marca C", ConsumoUrbanoAlcool = 7.5, ConsumoRodoviarioAlcool = 11.0, ConsumoUrbanoGasolina = 9, ConsumoRodoviarioGasolina = 14 }
-        };
+            veiculos = await _context.Veiculo.ToListAsync();
+        }
+        catch (Exception)
+        {
+            veiculos = new List<Veiculo>();
+        }
     }
 
     private Task OpenDialogAsync()

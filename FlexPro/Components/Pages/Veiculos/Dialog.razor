@@ -1,5 +1,7 @@
+@using FlexPro.Data
 @using FlexPro.Models
 @inject IDialogService DialogService
+@inject ApplicationDbContext _context
 
 <MudDialog >
     <DialogContent>
@@ -34,8 +36,15 @@
 
     private void SalvarVeiculo()
     {
-        // Lógica para salvar o veículo (chamar uma API ou salvar localmente)
-        Console.WriteLine($"Veículo {veiculo.Nome} cadastrado com sucesso!");
+        try
+        {
+            _context.Veiculo.Add(veiculo);
+            _context.SaveChanges();
+        }
+        catch (Exception)
+        {
+            throw;
+        }
         MudDialog?.Close(DialogResult.Ok(veiculo)); // Passa os dados do veículo como resultado, se necessário
     }
 }
