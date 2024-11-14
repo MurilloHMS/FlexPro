@@ -11,7 +11,28 @@
 <MudText Typo="Typo.h5">Abastecimentos</MudText>
 <br><br>
 
-<MudButton Variant="Variant.Filled" Color="Color.Primary">Importar dados Abastecimentos</MudButton>
+<MudFileUpload T="IBrowserFile" Accept=".xlsx, .xls" MaximumFileCount="100" FilesChanged="uploadFile">
+    <ActivatorContent>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.CloudUpload">
+            Importar dados Abastecimentos
+        </MudButton>
+    </ActivatorContent>
+</MudFileUpload>
+
+
+@if (_files != null)
+{
+    <MudList T="string">
+        @foreach (var file in _files)
+        {
+            <MudListItem Icon="@Icons.Material.Filled.AttachFile">
+                @file.Name <code>@file.Size bytes</code>
+            </MudListItem>
+        }
+    </MudList>
+}
 
 <br><br>
 
@@ -33,6 +54,12 @@
 
 @code {
     private IEnumerable<Abastecimento> _abastecimentos;
+    private IList<IBrowserFile> _files = new List<IBrowserFile>();
+
+    private void uploadFile(IBrowserFile file)
+    {
+        _files.Add(file);
+    }
 
     protected override async void OnInitialized()
     {
