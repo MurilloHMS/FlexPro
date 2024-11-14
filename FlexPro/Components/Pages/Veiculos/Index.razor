@@ -1,4 +1,5 @@
 @page "/veiculos"
+@using System.Collections.Immutable
 @using FlexPro.Data
 @using FlexPro.Models
 @using Microsoft.AspNetCore.Authorization
@@ -13,33 +14,42 @@
 <MudButton @onclick="OpenDialogAsync" Variant="Variant.Filled" Color="Color.Primary">
     Cadastrar Novo
 </MudButton>
-<br>
-<br>
+<br><br>
 
-<MudDataGrid Items="@veiculos" T="Veiculo" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true">
+<MudDataGrid Items="@VeiculosFiltrados" T="Veiculo" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Lista de Veiculos</MudText>
-        <MudSpacer/>
-        <MudTextField Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true"
+            AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
     <Columns>
         <PropertyColumn Property="x => x.Nome" Title="Nome" Sortable="true" Filterable="true" />
-        <PropertyColumn Property="x => x.Placa" Title="Placa" Sortable="true" Filterable="true"/>
-        <PropertyColumn Property="x => x.Marca" Title="Marca" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Placa" Title="Placa" Sortable="true" Filterable="true" />
+        <PropertyColumn Property="x => x.Marca" Title="Marca" Sortable="true" Filterable="true" />
         <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
             <CellTemplate>
-                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => ApagarVeiculo(@context.Item))"/>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => ApagarVeiculo(@context.Item))" />
             </CellTemplate>
         </TemplateColumn>
     </Columns>
     <PagerContent>
-        <MudDataGridPager T="Veiculo"/>
+        <MudDataGridPager T="Veiculo" />
     </PagerContent>
 </MudDataGrid>
 
-
 @code {
-    private IEnumerable<Veiculo> veiculos;
+    private IEnumerable<Veiculo> veiculos = new List<Veiculo>(); 
+    private string _searchString = "";  // 
+
+    private IEnumerable<Veiculo> VeiculosFiltrados =>
+        string.IsNullOrWhiteSpace(_searchString)
+            ? veiculos 
+            : veiculos.Where(v =>
+                v.Nome.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                v.Placa.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                v.Marca.Contains(_searchString, StringComparison.OrdinalIgnoreCase)
+            );
     
     protected override async Task OnInitializedAsync()
     {
@@ -53,14 +63,15 @@
         }
     }
 
+
     private async Task ApagarVeiculo(Veiculo veiculo)
     {
         var parametros = new DialogParameters<Dialog>
         {
-            {x => x.ContentText, "Tem certeza que você quer deletar este registro?, este processo não pode ser revertido!"},
-            {x => x.ButtonText, "Deletar"},
-            { x => x.Color, Color.Error},
-            {x => x.Veiculo, veiculo}
+            { x => x.ContentText, "Tem certeza que você quer deletar este registro?, este processo não pode ser revertido!" },
+            { x => x.ButtonText, "Deletar" },
+            { x => x.Color, Color.Error },
+            { x => x.Veiculo, veiculo }
         };
 
         var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
@@ -70,14 +81,8 @@
 
         if (!result.Canceled)
         {
-            veiculos = await _context.Veiculo.ToListAsync();
+            veiculos = await _context.Veiculo.ToListAsync(); 
         }
-        
-    }
-
-    private void ApagarVeiculoClick(Veiculo veiculo)
-    {
-        Task.Run(async () => await ApagarVeiculo(veiculo));
     }
 
     private Task OpenDialogAsync()
