@@ -1,6 +1,7 @@
 @using FlexPro.Data
 @using FlexPro.Models
 @using Microsoft.AspNetCore.Authorization
+@using Mono.TextTemplating
 @inject IDialogService DialogService
 @inject ApplicationDbContext _context
 @inject ISnackbar Snackbar
@@ -9,17 +10,24 @@
 
 <MudDialog >
     <DialogContent>
-        <MudCard>
-            <MudForm @ref="form" @bind-IsValid="isFormValid">
-                <MudTextField Label="Nome" @bind-Value="veiculo.Nome" Required="true" />
-                <MudTextField Label="Placa" @bind-Value="veiculo.Placa" Required="true" />
-                <MudTextField Label="Marca" @bind-Value="veiculo.Marca" Required="true" />
-                <MudTextField Label="Consumo Urbano (Álcool)" @bind-Value="veiculo.ConsumoUrbanoAlcool" />
-                <MudTextField Label="Consumo Rodoviário (Álcool)" @bind-Value="veiculo.ConsumoRodoviarioAlcool" />
-                <MudTextField Label="Consumo Urbano (Gasolina)" @bind-Value="veiculo.ConsumoUrbanoGasolina" />
-                <MudTextField Label="Consumo Rodoviário (Gasolina)" @bind-Value="veiculo.ConsumoRodoviarioGasolina" />
-            </MudForm>
-        </MudCard>
+        <MudGrid>
+            <MudItem xs="12" sm="12">
+                <MudForm @ref="form" @bind-IsValid="isFormValid">
+                    <MudTextField Label="Nome" @bind-Value="veiculo.Nome" Required="true" />
+                    <MudTextField Label="Placa" @bind-Value="veiculo.Placa" Required="true" />
+                    <MudSelect Label="Marca" @bind-Value="veiculo.Marca">
+                        @foreach (var marca in marcas)
+                        {
+                        <MudSelectItem Value="marca">@marca</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudTextField Label="Consumo Urbano (Álcool)" @bind-Value="veiculo.ConsumoUrbanoAlcool" />
+                    <MudTextField Label="Consumo Rodoviário (Álcool)" @bind-Value="veiculo.ConsumoRodoviarioAlcool" />
+                    <MudTextField Label="Consumo Urbano (Gasolina)" @bind-Value="veiculo.ConsumoUrbanoGasolina" />
+                    <MudTextField Label="Consumo Rodoviário (Gasolina)" @bind-Value="veiculo.ConsumoRodoviarioGasolina" />
+                </MudForm>
+            </MudItem>
+        </MudGrid>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="CloseDialog" Color="Color.Secondary">Cancelar</MudButton>
@@ -32,6 +40,30 @@
     private MudForm form;
     private bool isFormValid;
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    
+    private string[] marcas = 
+    {
+        "ACURA", "ALFA ROMEO", "AUDI", "BMW", "BUICK", "CADILLAC", "CHEVROLET", 
+        "CHERY", "CITROËN", "DODGE", "FERRARI", "FIAT", "FORD", "GMC", "HONDA", 
+        "HYUNDAI", "INFINITI", "JAGUAR", "JEEP", "KIA", "LAMBORGHINI", 
+        "LAND ROVER", "LEXUS", "LINCOLN", "MITSUBISHI", "MERCEDES-BENZ", 
+        "MINI", "MITSUBISHI", "NISSAN", "PEUGEOT", "PORSCHE", "RAM", "RENAULT", 
+        "SANTA FÉ", "SEAT", "SUBARU", "SUZUKI", "TESLA", "TOYOTA", "VOLKSWAGEN", 
+        "VOLVO", "ZAZ", "TROLLER", "JAC MOTORS", "FOTON", "GREAT WALL", "TATA", 
+        "BYD", "DIESEL", "MERCURY", "SPYKER", "SMART", "DAEWOO", "FIAT CHRYSLER", 
+        "HONDA", "LIFAN", "CHERY", "CROSSFOX", "RENAULT", "FORD"
+    };
+
+    private async Task<IEnumerable<string>> Search(string value, CancellationToken token)
+    {
+        await Task.Delay(5, token);
+
+        if (string.IsNullOrEmpty(value))
+            return marcas;
+        
+        return marcas.Where(x => x.Contains(value, StringComparison.OrdinalIgnoreCase));
+    }
+
 
     private void CloseDialog()
     {
