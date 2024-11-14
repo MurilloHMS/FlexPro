@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Authorization
 @inject IDialogService DialogService
 @inject ApplicationDbContext _context
+@inject ISnackbar Snackbar
 
 @attribute [Authorize]
 
@@ -43,9 +44,11 @@
         {
             _context.Veiculo.Add(veiculo);
             _context.SaveChanges();
+            Snackbar.Add("Veiculo Cadastrado com Sucesso!", Severity.Success);
         }
-        catch (Exception)
+        catch (Exception e)
         {
+            Snackbar.Add($"Ocorreu um erro ao deletar o veiculo: {e.Message}",Severity.Error);
             throw;
         }
         MudDialog?.Close(DialogResult.Ok(veiculo)); // Passa os dados do veículo como resultado, se necessário
