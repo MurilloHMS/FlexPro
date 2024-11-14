@@ -11,7 +11,7 @@
 
 <MudText Typo="Typo.h2">Veiculos</MudText>
 <br><br><br>
-<MudButton @onclick="OpenDialogAsync" Variant="Variant.Filled" Color="Color.Primary">
+<MudButton @onclick="@(() =>OpenDialogAsync())" Variant="Variant.Filled" Color="Color.Primary">
     Cadastrar Novo
 </MudButton>
 <br><br>
@@ -85,9 +85,15 @@
         }
     }
 
-    private Task OpenDialogAsync()
+    private async Task OpenDialogAsync()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
-        return DialogService.ShowAsync<CadastrarVeiculo>("Cadastro de Veículo", options);
+        var dialog = await DialogService.ShowAsync<CadastrarVeiculo>("Cadastro de Veículo", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            veiculos = await _context.Veiculo.ToListAsync();
+        }
     }
 }
