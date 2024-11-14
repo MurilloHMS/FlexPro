@@ -1,0 +1,53 @@
+@using FlexPro.Data
+@using FlexPro.Models
+@using Microsoft.AspNetCore.Authorization
+@inject IDialogService DialogService
+@inject ApplicationDbContext _context
+
+@attribute [Authorize]
+
+<MudDialog >
+    <DialogContent>
+        <MudCard>
+            <MudForm @ref="form" @bind-IsValid="isFormValid">
+                <MudTextField Label="Nome" @bind-Value="veiculo.Nome" Required="true" />
+                <MudTextField Label="Placa" @bind-Value="veiculo.Placa" Required="true" />
+                <MudTextField Label="Marca" @bind-Value="veiculo.Marca" Required="true" />
+                <MudTextField Label="Consumo Urbano (Álcool)" @bind-Value="veiculo.ConsumoUrbanoAlcool" />
+                <MudTextField Label="Consumo Rodoviário (Álcool)" @bind-Value="veiculo.ConsumoRodoviarioAlcool" />
+                <MudTextField Label="Consumo Urbano (Gasolina)" @bind-Value="veiculo.ConsumoUrbanoGasolina" />
+                <MudTextField Label="Consumo Rodoviário (Gasolina)" @bind-Value="veiculo.ConsumoRodoviarioGasolina" />
+            </MudForm>
+        </MudCard>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton OnClick="SalvarVeiculo" Color="Color.Primary" Disabled="!isFormValid">Salvar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private Veiculo veiculo = new Veiculo();
+    private MudForm form;
+    private bool isFormValid;
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    private void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void SalvarVeiculo()
+    {
+        try
+        {
+            _context.Veiculo.Add(veiculo);
+            _context.SaveChanges();
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+        MudDialog?.Close(DialogResult.Ok(veiculo)); // Passa os dados do veículo como resultado, se necessário
+    }
+}

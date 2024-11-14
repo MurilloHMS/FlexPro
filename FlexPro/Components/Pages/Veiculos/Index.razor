@@ -26,7 +26,15 @@
         <PropertyColumn Property="x => x.Nome" Title="Nome" Sortable="true" Filterable="true" />
         <PropertyColumn Property="x => x.Placa" Title="Placa" Sortable="true" Filterable="true"/>
         <PropertyColumn Property="x => x.Marca" Title="Marca" Sortable="true" Filterable="true"/>
+        <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => ApagarVeiculo(@context.Item))"/>
+            </CellTemplate>
+        </TemplateColumn>
     </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Veiculo"/>
+    </PagerContent>
 </MudDataGrid>
 
 
@@ -45,9 +53,36 @@
         }
     }
 
+    private async Task ApagarVeiculo(Veiculo veiculo)
+    {
+        var parametros = new DialogParameters<Dialog>
+        {
+            {x => x.ContentText, "Tem certeza que você quer deletar este registro?, este processo não pode ser revertido!"},
+            {x => x.ButtonText, "Deletar"},
+            { x => x.Color, Color.Error},
+            {x => x.Veiculo, veiculo}
+        };
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = await DialogService.ShowAsync<Dialog>("Deletar", parametros, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            veiculos = await _context.Veiculo.ToListAsync();
+        }
+        
+    }
+
+    private void ApagarVeiculoClick(Veiculo veiculo)
+    {
+        Task.Run(async () => await ApagarVeiculo(veiculo));
+    }
+
     private Task OpenDialogAsync()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
-        return DialogService.ShowAsync<Dialog>("Cadastro de Veículo", options);
+        return DialogService.ShowAsync<CadastrarVeiculo>("Cadastro de Veículo", options);
     }
 }
