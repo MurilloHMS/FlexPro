@@ -1,0 +1,52 @@
+@page "/funcionarios"
+@using FlexPro.Data
+@using FlexPro.Models
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext _context
+
+<MudText Typo="Typo.h2">Funcionários</MudText>
+<br><br><br>
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" >Cadastrar novo</MudButton>
+<br><br>
+
+<MudDataGrid Items="@funcionariosFiltrados" T="Funcionarios" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Lista de Funcionários</MudText>
+        <MudSpacer/>
+        <MudTextField Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" class="mt-0"/>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Nome" Title="Nome" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Departamento" Title="Departamento" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Gerente" Title="Gerente" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Email" Title="E-Mail" Sortable="true" Filterable="true"/>
+    </Columns>
+</MudDataGrid>
+@code {
+    private IEnumerable<Funcionarios> funcionarios = default!;
+    private string _searchString = default;
+
+    private IEnumerable<Funcionarios> funcionariosFiltrados => string.IsNullOrWhiteSpace(_searchString)
+        ? funcionarios
+        : funcionarios.Where(f =>
+            f.Nome.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+            f.Departamento.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+            f.Gerente.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+            f.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            funcionarios = await _context.Funcionarios.ToListAsync();
+        }
+        catch (Exception e)
+        {
+            funcionarios = default!;
+            throw;
+        }
+    }
+
+}
