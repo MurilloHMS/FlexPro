@@ -3,11 +3,12 @@
 @using FlexPro.Models
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext _context
+@inject IDialogService DialogService
 
 <MudText Typo="Typo.h2">Funcionários</MudText>
 <br><br><br>
 
-<MudButton Variant="Variant.Filled" Color="Color.Primary" >Cadastrar novo</MudButton>
+<MudButton @onclick="@(() => OpenDialogAsync())" Variant="Variant.Filled" Color="Color.Primary" >Cadastrar novo</MudButton>
 <br><br>
 
 <MudDataGrid Items="@funcionariosFiltrados" T="Funcionarios" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true">
@@ -22,11 +23,16 @@
         <PropertyColumn Property="x => x.Departamento" Title="Departamento" Sortable="true" Filterable="true"/>
         <PropertyColumn Property="x => x.Gerente" Title="Gerente" Sortable="true" Filterable="true"/>
         <PropertyColumn Property="x => x.Email" Title="E-Mail" Sortable="true" Filterable="true"/>
+        <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => ApagarFuncionario(@context.Item))"/>
+            </CellTemplate>
+        </TemplateColumn>
     </Columns>
 </MudDataGrid>
 @code {
-    private IEnumerable<Funcionarios> funcionarios = default!;
-    private string _searchString = default;
+    private IEnumerable<Funcionarios> funcionarios = new List<Funcionarios>();
+    private string _searchString = "";
 
     private IEnumerable<Funcionarios> funcionariosFiltrados => string.IsNullOrWhiteSpace(_searchString)
         ? funcionarios
@@ -46,6 +52,39 @@
         {
             funcionarios = default!;
             throw;
+        }
+    }
+
+    private async Task ApagarFuncionario(Funcionarios funcionario)
+    {
+        var parametros = new DialogParameters<DialogFuncionarios>
+        {
+            { x => x.ContentText, "Tem certeza que você quer deletar este registro?, este processo não pode ser revertido!" },
+            { x => x.ButtonText, "Deletar" },
+            { x => x.Color, Color.Error },
+            { x => x.Funcionarios, funcionario }
+        };
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = await DialogService.ShowAsync<DialogFuncionarios>("Deletar", parametros, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            funcionarios = await _context.Funcionarios.ToListAsync(); 
+        }
+    }
+    
+    private async Task OpenDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarFuncionario>("Cadastro de Funcionários", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            funcionarios = await _context.Funcionarios.ToListAsync();
         }
     }
 

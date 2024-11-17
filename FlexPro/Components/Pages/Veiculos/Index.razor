@@ -66,7 +66,7 @@
 
     private async Task ApagarVeiculo(Veiculo veiculo)
     {
-        var parametros = new DialogParameters<Dialog>
+        var parametros = new DialogParameters<DialogVeiculos>
         {
             { x => x.ContentText, "Tem certeza que você quer deletar este registro?, este processo não pode ser revertido!" },
             { x => x.ButtonText, "Deletar" },
@@ -76,7 +76,7 @@
 
         var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
 
-        var dialog = await DialogService.ShowAsync<Dialog>("Deletar", parametros, options);
+        var dialog = await DialogService.ShowAsync<DialogVeiculos>("Deletar", parametros, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
