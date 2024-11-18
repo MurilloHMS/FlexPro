@@ -3,7 +3,7 @@
     public class Revisao
     {
         public int Id { get; set; }
-        public DateTime Data { get; set; }
+        public DateTime? Data { get; set; }
         public int Kilometragem { get; set; }
         public string NotaFiscal { get; set; }
         public string Tipo { get; set; }

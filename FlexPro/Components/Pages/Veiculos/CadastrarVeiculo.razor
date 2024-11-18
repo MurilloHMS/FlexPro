@@ -1,6 +1,7 @@
 @using FlexPro.Data
 @using FlexPro.Models
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
 @inject IDialogService DialogService
 @inject ApplicationDbContext _context
 @inject ISnackbar Snackbar
@@ -52,6 +53,8 @@
         "BYD", "DIESEL", "MERCURY", "SPYKER", "SMART", "DAEWOO", "FIAT CHRYSLER", 
         "HONDA", "LIFAN", "CHERY", "CROSSFOX", "RENAULT", "FORD"
     };
+
+    
 
     private async Task<IEnumerable<string>> Search(string value, CancellationToken token)
     {
