@@ -79,7 +79,7 @@
         }
         catch (Exception e)
         {
-            Snackbar.Add($"Ocorreu um erro ao deletar o veiculo: {e.Message}",Severity.Error);
+            Snackbar.Add($"Ocorreu um erro ao cadastrar o veiculo: {e.Message}",Severity.Error);
             throw;
         }
         MudDialog?.Close(DialogResult.Ok(veiculo)); // Passa os dados do veículo como resultado, se necessário
