@@ -29,6 +29,9 @@
             </CellTemplate>
         </TemplateColumn>
     </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Funcionarios"/>
+    </PagerContent>
 </MudDataGrid>
 @code {
     private IEnumerable<Funcionarios> funcionarios = new List<Funcionarios>();

@@ -12,7 +12,7 @@
         <MudGrid>
             <MudItem xs="12" sm="12">
                 <MudForm @ref="form" @bind-IsValid="isFormValid">
-                    <MudTextField Label="Nome" @bind-Value="veiculo.Nome" Required="true" />
+                    <MudTextField Label="Nome" @bind-Value="veiculo.Nome" Required="true"/>
                     <MudTextField Label="Placa" @bind-Value="veiculo.Placa" Required="true" />
                     <MudSelect Label="Marca" @bind-Value="veiculo.Marca">
                         @foreach (var marca in marcas)
