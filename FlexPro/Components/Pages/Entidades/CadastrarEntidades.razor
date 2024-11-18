@@ -1,0 +1,52 @@
+@using FlexPro.Data
+@using FlexPro.Models
+@using Microsoft.AspNetCore.Authorization
+@inject IDialogService DialogService
+@inject ApplicationDbContext _context
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="12">
+                <MudForm @ref="form" @bind-IsValid="isFormValid">
+                    <MudTextField Label="Nome" @bind-Value="Entidade.Nome" Required="true"/>
+                </MudForm>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton OnClick="Salvar" Color="Color.Primary" Disabled="!isFormValid">Salvar</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    private Entidade Entidade = new Entidade();
+    private MudForm form;
+    private bool isFormValid;
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    private void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void Salvar()
+    {
+        try
+        {
+            _context.Entidade.Add(Entidade);
+            _context.SaveChanges();
+            Snackbar.Add("Entidade cadastrada com Sucesso!", Severity.Success);
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Ocorreu um erro ao cadastrar a Entidade: {e.Message}", Severity.Error);
+            throw;
+        }
+        MudDialog?.Close(DialogResult.Ok(Entidade));
+    }
+    
+}
