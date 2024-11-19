@@ -14,7 +14,7 @@
 <MudButton @onclick="@(() =>OpenDialogAsync())" Variant="Variant.Filled" Color="Color.Primary">Cadastrar</MudButton>
 <br><br>
 
-<MudDataGrid Items="@RevisoesFiltradas" T="Revisao">
+<MudDataGrid Items="@RevisoesFiltradas" T="Revisao" Hover="true" Bordered="true" Striped="true" Dense="true" Filterable="true" SortMode="SortMode.Multiple">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Lista de Revisões</MudText>
         <MudSpacer/>
