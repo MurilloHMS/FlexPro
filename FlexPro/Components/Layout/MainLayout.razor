@@ -11,9 +11,11 @@
         <MudSpacer/>
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End"/>
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-        <NavMenu/>
-    </MudDrawer>
+    <MudContainer Class="mud-height-full">
+        <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Breakpoint="Breakpoint.Lg" MiniWidth="50px" Elevation="1" Variant="DrawerVariant.Mini" OpenMiniOnHover="true">
+            <NavMenu/>
+        </MudDrawer>
+    </MudContainer>
     <MudMainContent Class="mt-16 pa-4">
         @Body
     </MudMainContent>
@@ -27,7 +29,7 @@
 </div>
 
 @code {
-    private bool _drawerOpen = true;
+    private bool _drawerOpen = false;
 
     private void DrawerToggle()
     {

@@ -7,21 +7,21 @@
         <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Página Inicial</MudNavLink>
         <AuthorizeView>
             <MudNavGroup Title="Cadastros" Expanded="false" Icon="@Icons.Material.Filled.Add">
-                <MudNavLink Href="/veiculos" Icon="@Icons.Material.Filled.DirectionsCar">Veículos</MudNavLink>
-                <MudNavLink Href="/funcionarios" Icon="@Icons.Material.Filled.Group">Funcionários</MudNavLink>
-                <MudNavLink Href="/categorias" Icon="@Icons.Material.Filled.Category">Categorias</MudNavLink>
-                <MudNavLink Href="/entidades" Icon="@Icons.Material.Filled.Business">Prestadores e Fornecedores</MudNavLink>
-                <MudNavLink Href="/revisoes" Icon="@Icons.Material.Filled.CarRepair">Revisões</MudNavLink>
-                <MudNavLink Href="/abastecimentos" Icon="@Icons.Material.Filled.LocalGasStation">Abastecimentos</MudNavLink>
+                <MudNavLink Href="/veiculos" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.DirectionsCar">Veículos</MudNavLink>
+                <MudNavLink Href="/funcionarios" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Group">Funcionários</MudNavLink>
+                <MudNavLink Href="/categorias" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Category">Categorias</MudNavLink>
+                <MudNavLink Href="/entidades" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Business">Prestadores e Fornecedores</MudNavLink>
+                <MudNavLink Href="/revisoes" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.CarRepair">Revisões</MudNavLink>
+                <MudNavLink Href="/abastecimentos" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.LocalGasStation">Abastecimentos</MudNavLink>
             </MudNavGroup>
             <MudNavGroup Title="Ferramentas" Expanded="false" Icon="@Icons.Material.Filled.Build">
-                <MudNavLink Href="/separarPDF" Icon="@Icons.Custom.FileFormats.FilePdf">Separar PDF</MudNavLink>
-                <MudNavLink Href="/" Icon="@Icons.Material.Filled.EmojiTransportation">Calcular Transportadoras</MudNavLink>
-                <MudNavLink Href="/" Icon="@Icons.Material.Filled.Calculate">Calcular Dados ICMS</MudNavLink>
-                <MudNavLink Href="/" Icon="@Icons.Material.Filled.CreditCard">Separar Dados Cartões</MudNavLink>
+                <MudNavLink Href="/separarPDF" Match="NavLinkMatch.All" Icon="@Icons.Custom.FileFormats.FilePdf">Separar PDF</MudNavLink>
+                <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.EmojiTransportation">Calcular Transportadoras</MudNavLink>
+                <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Calculate">Calcular Dados ICMS</MudNavLink>
+                <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.CreditCard">Separar Dados Cartões</MudNavLink>
             </MudNavGroup>
             <MudNavGroup Title="Dashboards" Expanded="false" Icon="@Icons.Material.Filled.Dashboard">
-                <MudNavLink Href="dash/veiculos" Icon="@Icons.Material.Filled.DirectionsCar">Veiculos</MudNavLink>
+                <MudNavLink Href="dash/veiculos" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.DirectionsCar">Veiculos</MudNavLink>
             </MudNavGroup>
         </AuthorizeView>
         <AuthorizeView>
@@ -29,7 +29,7 @@
                 <MudNavLink Href="Account/Manage" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
                 @if (context.User.Identity?.Name is "murillo.henrique@proautokimium.com.br")
                 {
-                <MudNavLink Href="Account/Register" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink>
+                    <MudNavLink Href="Account/Register" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink>
                 }
                 <form action="Account/Logout" method="post">
                     <AntiforgeryToken/>
