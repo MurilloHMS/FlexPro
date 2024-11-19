@@ -5,15 +5,12 @@
 @inject ApplicationDbContext _context
 @inject IDialogService DialogService
 
-<MudText Typo="Typo.h2">Funcionários</MudText>
-<br><br><br>
-
-<MudButton @onclick="@(() => OpenDialogAsync())" Variant="Variant.Filled" Color="Color.Primary" >Cadastrar novo</MudButton>
+<MudText Typo="Typo.h2" Align="Align.Center">Funcionários</MudText>
 <br><br>
 
 <MudDataGrid Items="@funcionariosFiltrados" T="Funcionarios" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true">
     <ToolBarContent>
-        <MudText Typo="Typo.h6">Lista de Funcionários</MudText>
+        <MudButton @onclick="@(() => OpenDialogAsync())" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" >Cadastrar novo</MudButton>
         <MudSpacer/>
         <MudTextField @bind-Value="_searchString" Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true"
                       AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" class="mt-0"/>
