@@ -1,7 +1,7 @@
 # Variaveis
 DEV_COMPOSE=docker-compose.dev.yaml
 PROD_COMPOSE=docker-compose.prod.yaml
-SERVICE_NAME=flexi-tools-asp
+SERVICE_NAME=FlexPro
 
 dev:
 	docker-compose -f $(DEV_COMPOSE) up --build -d
