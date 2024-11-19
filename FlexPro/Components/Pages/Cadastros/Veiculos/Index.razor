@@ -25,7 +25,9 @@
         <PropertyColumn Property="x => x.Marca" Title="Marca" Sortable="true" Filterable="true" />
         <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
             <CellTemplate>
-                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => ApagarVeiculo(@context.Item))" />
+                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenEditDialogAsync(@context.Item))"/>
+                <MudSpacer/>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => ApagarVeiculo(@context.Item))"/>
             </CellTemplate>
         </TemplateColumn>
     </Columns>
@@ -85,6 +87,23 @@
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
         var dialog = await DialogService.ShowAsync<CadastrarVeiculo>("Cadastro de Veículo", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            veiculos = await _context.Veiculo.ToListAsync();
+        }
+    }
+
+    private async Task OpenEditDialogAsync(Veiculo veiculo)
+    {
+        var parametros = new DialogParameters<CadastrarVeiculo>
+        {
+            { x => x._veiculo, veiculo }
+        };
+        
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarVeiculo>("Cadastro de Veículo", parametros, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)

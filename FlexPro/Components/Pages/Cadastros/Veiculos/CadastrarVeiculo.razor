@@ -40,6 +40,9 @@
     private MudForm form;
     private bool isFormValid;
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] 
+    public Veiculo _veiculo { get; set; }
     
     private string[] marcas = 
     {
@@ -54,7 +57,13 @@
         "HONDA", "LIFAN", "CHERY", "CROSSFOX", "RENAULT", "FORD"
     };
 
-    
+    protected override void OnInitialized()
+    {
+        if (_veiculo is not null)
+        {
+            veiculo = _veiculo;
+        }
+    }
 
     private async Task<IEnumerable<string>> Search(string value, CancellationToken token)
     {
@@ -76,9 +85,18 @@
     {
         try
         {
-            _context.Veiculo.Add(veiculo);
-            _context.SaveChanges();
-            Snackbar.Add("Veiculo Cadastrado com Sucesso!", Severity.Success);
+            if (_veiculo is not null)
+            {
+                _context.Veiculo.Update(veiculo);
+                _context.SaveChanges();
+                Snackbar.Add("Veiculo Atualizado com Sucesso!", Severity.Success);
+            }
+            else
+            {
+                _context.Veiculo.Add(veiculo);
+                _context.SaveChanges();
+                Snackbar.Add("Veiculo Cadastrado com Sucesso!", Severity.Success);
+            }
         }
         catch (Exception e)
         {
