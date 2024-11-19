@@ -99,7 +99,7 @@
         };
         
         var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
-        var dialog = await DialogService.ShowAsync<CadastrarFuncionario>("Cadastro de Funcionários", parametros, options);
+        var dialog = await DialogService.ShowAsync<CadastrarFuncionario>("Atualizar Funcionário", parametros, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
