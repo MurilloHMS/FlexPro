@@ -26,6 +26,8 @@
         <PropertyColumn Property="x => x.Email" Title="E-Mail" Sortable="true" Filterable="true"/>
         <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
             <CellTemplate>
+                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenEditDialogAsync(@context.Item))"/>
+                <MudSpacer/>
                 <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => ApagarFuncionario(@context.Item))"/>
             </CellTemplate>
         </TemplateColumn>
@@ -84,6 +86,23 @@
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
         var dialog = await DialogService.ShowAsync<CadastrarFuncionario>("Cadastro de Funcionários", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            funcionarios = await _context.Funcionarios.ToListAsync();
+        }
+    }
+
+    private async Task OpenEditDialogAsync(Funcionarios funcionario)
+    {
+        var parametros = new DialogParameters<CadastrarFuncionario>
+        {
+            {x => x._funcionarios, funcionario}
+        };
+        
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarFuncionario>("Cadastro de Funcionários", parametros, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)

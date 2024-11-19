@@ -37,13 +37,28 @@
     private Funcionarios funcionarios = new Funcionarios();
     private MudForm form;
     private bool isFormValid;
+    
     [CascadingParameter]
-    MudDialogInstance MudDialog { get; set; }
+    private MudDialogInstance MudDialog { get; set; }
+    
+    [Parameter]
+    public Funcionarios _funcionarios { get; set; }
+    
+    [Parameter]
+    public string Tipo { get; set; }
 
     private string[] hierarquias =
     {
         "SUPERVISOR", "GERENTE", "COORDENADOR", "CONSULTOR"
     };
+
+    protected override void OnInitialized()
+    {
+        if (_funcionarios is not null)
+        {
+            funcionarios = _funcionarios;
+        }
+    }
 
     private void CloseDialog()
     {
@@ -54,9 +69,18 @@
     {
         try
         {
-            _context.Funcionarios.Add(funcionarios);
-            _context.SaveChanges();
-            Snackbar.Add("Funcionário cadastrado com Sucesso!", Severity.Success);
+            if (_funcionarios is not null)
+            {
+                _context.Funcionarios.Update(funcionarios);
+                _context.SaveChanges();
+                Snackbar.Add("Funcionário Atualizado com Sucesso!", Severity.Success);
+            }
+            else
+            {
+                _context.Funcionarios.Add(funcionarios);
+                _context.SaveChanges();
+                Snackbar.Add("Funcionário cadastrado com Sucesso!", Severity.Success);
+            }
         }
         catch (Exception e)
         {
