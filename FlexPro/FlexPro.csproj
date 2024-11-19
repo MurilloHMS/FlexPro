@@ -21,4 +21,47 @@
         <PackageReference Include="PDFsharp" Version="6.1.1" />
     </ItemGroup>
 
+
+    <ItemGroup>
+      <Folder Include="Components\Pages\Cadastros\" />
+      <Folder Include="Components\Pages\Ferramentas\" />
+    </ItemGroup>
+
+
+    <ItemGroup>
+      <AdditionalFiles Include="Components\Pages\Cadastros\Abastecimentos\Index.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Categorias\CadastrarCategorias.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Categorias\DialogCategorias.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Categorias\Index.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Entidades\CadastrarEntidades.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Entidades\DialogEntidades.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Entidades\Index.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Funcionarios\CadastrarFuncionario.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Funcionarios\DialogFuncionarios.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Funcionarios\Index.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Revisoes\CadastrarRevisao.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Revisoes\DialogRevisao.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Revisoes\Index.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Veiculos\CadastrarVeiculo.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Veiculos\DialogVeiculos.razor" />
+      <AdditionalFiles Include="Components\Pages\Cadastros\Veiculos\Index.razor" />
+      <AdditionalFiles Include="Components\Pages\Ferramentas\Separar PDF\Index.razor" />
+    </ItemGroup>
+
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Components\Pages\Entidades\CadastrarEntidades.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Entidades\DialogEntidades.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Entidades\Index.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Funcionarios\CadastrarFuncionario.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Funcionarios\DialogFuncionarios.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Funcionarios\Index.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Revisoes\CadastrarRevisao.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Revisoes\DialogRevisao.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Revisoes\Index.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Veiculos\CadastrarVeiculo.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Veiculos\DialogVeiculos.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Veiculos\Index.razor" />
+    </ItemGroup>
+
 </Project>
