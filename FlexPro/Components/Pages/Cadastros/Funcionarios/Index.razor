@@ -6,11 +6,11 @@
 @inject IDialogService DialogService
 
 <MudText Typo="Typo.h2" Align="Align.Center">Funcionários</MudText>
-<br><br>
+<br><br><br>
 
 <MudDataGrid Items="@funcionariosFiltrados" T="Funcionarios" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true">
     <ToolBarContent>
-        <MudButton @onclick="@(() => OpenDialogAsync())" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" >Cadastrar novo</MudButton>
+        <MudButton @onclick="@(() => OpenDialogAsync())" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" >Cadastrar</MudButton>
         <MudSpacer/>
         <MudTextField @bind-Value="_searchString" Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true"
                       AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" class="mt-0"/>
