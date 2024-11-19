@@ -14,6 +14,12 @@
                 <MudForm @ref="form" @bind-IsValid="isFormValid">
                     <MudTextField Label="Nome" @bind-Value="funcionarios.Nome" Required="true"/>
                     <MudTextField Label="Departamento" @bind-Value="funcionarios.Departamento" Required="true"/>
+                    <MudSelect Label="Hierarquia" @bind-Value="funcionarios.Hierarquia" Required="false">
+                        @foreach (var hierarquia in hierarquias)
+                        {
+                            <MudSelectItem Value="hierarquia">@hierarquia</MudSelectItem>
+                        }
+                    </MudSelect>
                     <MudTextField Label="Gerente" @bind-Value="funcionarios.Gerente" Required="false"/>
                     <MudTextField Label="Email" @bind-Value="funcionarios.Email" Required="false"/>
                     <MudTextField Label="Hash" @bind-Value="funcionarios.Hash" Required="false"/>
@@ -33,6 +39,11 @@
     private bool isFormValid;
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; }
+
+    private string[] hierarquias =
+    {
+        "SUPERVISOR", "GERENTE", "COORDENADOR", "CONSULTOR"
+    };
 
     private void CloseDialog()
     {
