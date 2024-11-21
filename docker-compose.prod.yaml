@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  flexi-tools-asp:
+    build:
+      context: . 
+      dockerfile: Dockerfile 
+    ports:
+    - "80:8080"  
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production  
+    restart: always  

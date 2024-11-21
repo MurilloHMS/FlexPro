@@ -1,0 +1,116 @@
+@page "/veiculos"
+@using System.Collections.Immutable
+@using FlexPro.Data
+@using FlexPro.Models
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@inject IDialogService DialogService
+@inject ApplicationDbContext _context
+
+@attribute [Authorize]
+
+<PageTitle>Veículos</PageTitle>
+
+<MudText Typo="Typo.h2" Align="Align.Center">Veiculos</MudText>
+<br><br><br>
+
+<MudDataGrid Items="@VeiculosFiltrados" T="Veiculo" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true">
+    <ToolBarContent>
+        <MudButton @onclick="@(() =>OpenDialogAsync())" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary">Cadastrar</MudButton>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true"
+            AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Nome" Title="Nome" Sortable="true" Filterable="true" />
+        <PropertyColumn Property="x => x.Placa" Title="Placa" Sortable="true" Filterable="true" />
+        <PropertyColumn Property="x => x.Marca" Title="Marca" Sortable="true" Filterable="true" />
+        <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
+            <CellTemplate>
+                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenEditDialogAsync(@context.Item))"/>
+                <MudSpacer/>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => ApagarVeiculo(@context.Item))"/>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Veiculo" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    private IEnumerable<Veiculo> veiculos = new List<Veiculo>(); 
+    private string _searchString = "";  // 
+
+    private IEnumerable<Veiculo> VeiculosFiltrados =>
+        string.IsNullOrWhiteSpace(_searchString)
+            ? veiculos 
+            : veiculos.Where(v =>
+                v.Nome.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                v.Placa.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                v.Marca.Contains(_searchString, StringComparison.OrdinalIgnoreCase)
+            );
+    
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            veiculos = await _context.Veiculo.ToListAsync();
+        }
+        catch (Exception)
+        {
+            veiculos = new List<Veiculo>();
+        }
+    }
+
+
+    private async Task ApagarVeiculo(Veiculo veiculo)
+    {
+        var parametros = new DialogParameters<DialogVeiculos>
+        {
+            { x => x.ContentText, "Tem certeza que você quer deletar este registro?, este processo não pode ser revertido!" },
+            { x => x.ButtonText, "Deletar" },
+            { x => x.Color, Color.Error },
+            { x => x.Veiculo, veiculo }
+        };
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = await DialogService.ShowAsync<DialogVeiculos>("Deletar", parametros, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            veiculos = await _context.Veiculo.ToListAsync(); 
+        }
+    }
+
+    private async Task OpenDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarVeiculo>("Cadastro de Veículo", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            veiculos = await _context.Veiculo.ToListAsync();
+        }
+    }
+
+    private async Task OpenEditDialogAsync(Veiculo veiculo)
+    {
+        var parametros = new DialogParameters<CadastrarVeiculo>
+        {
+            { x => x._veiculo, veiculo }
+        };
+        
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarVeiculo>("Cadastro de Veículo", parametros, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            veiculos = await _context.Veiculo.ToListAsync();
+        }
+    }
+}
