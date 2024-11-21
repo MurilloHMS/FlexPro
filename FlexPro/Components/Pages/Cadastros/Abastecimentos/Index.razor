@@ -96,7 +96,11 @@
     {
         try
         {
-            _abastecimentos = new List<Abastecimento>();
+            dataLoaded = false;
+            visible = true;
+            _abastecimentos = await _Context.Abastecimento.ToListAsync();
+            dataLoaded = true;
+            visible = false;
         }
         catch (Exception e)
         {
