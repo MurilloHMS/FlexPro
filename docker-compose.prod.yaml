@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  flexi-tools-asp:
+  flexpro:
     build:
       context: . 
       dockerfile: Dockerfile 
