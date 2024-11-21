@@ -98,7 +98,7 @@
         {
             dataLoaded = false;
             visible = true;
-            _abastecimentos = await _Context.Abastecimento.ToListAsync();
+            _abastecimentos = _Context.Abastecimento.ToList();
             dataLoaded = true;
             visible = false;
         }
