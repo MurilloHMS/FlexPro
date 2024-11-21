@@ -40,6 +40,13 @@
 <MudButton OnClick="@(() => ImportarDados())" Variant="Variant.Filled" Disabled="@_isValid">Importar Dados</MudButton>
 <br><br>
 
+@if (!dataLoaded)
+{
+    <MudOverlay Visible="visible" DarkBackground >
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>  
+    </MudOverlay>
+}
+
 <MudDataGrid Items="@_abastecimentos" T="Abastecimento" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Dados abastecimentos</MudText>
@@ -64,6 +71,8 @@
     private IList<IBrowserFile> _files = new List<IBrowserFile>();
 
     private bool _isValid = true;
+    private bool dataLoaded;
+    private bool visible;
 
     private void uploadFile(IBrowserFile file)
     {
@@ -85,6 +94,8 @@
 
     private async Task ImportarDados()
     {
+        dataLoaded = false;
+        visible = true;
         if (_files.Any())
         {
             var file = _files.First();
@@ -111,12 +122,16 @@
                 // _abastecimentos = await _Context.Abastecimento.ToListAsync();
 
                 Snackbar.Add("Dados abasteciento preenchidos com sucesso", Severity.Success);
+                _files.Clear();
             }
         }
         else
         {
             Snackbar.Add("Erro: Nenuma informação encontrada", Severity.Error);
         }
+
+        dataLoaded = true;
+        visible = false;
     }
 
     private async Task<IEnumerable<Abastecimento>> ColetarDadosAbastecimento(IBrowserFile arquivo)
