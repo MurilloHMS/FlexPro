@@ -9,6 +9,7 @@
 
 
     <ItemGroup>
+        <PackageReference Include="ClosedXML" Version="0.104.2" />
         <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.*"/>
         <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.*"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.*"/>
@@ -24,7 +25,6 @@
 
     <ItemGroup>
       <Folder Include="Components\Pages\Cadastros\" />
-      <Folder Include="Components\Pages\Ferramentas\" />
     </ItemGroup>
 
 

@@ -5,6 +5,7 @@
 @using Microsoft.EntityFrameworkCore
 @inject IDialogService DialogService
 @inject ApplicationDbContext _Context
+@inject ISnackbar Snackbar
 
 @attribute [Authorize]
 
@@ -35,7 +36,8 @@
         }
     </MudList>
 }
-
+<br>
+<MudButton OnClick="@(() => ImportarDados())" Variant="Variant.Filled" Disabled="@_isValid">Importar Dados</MudButton>
 <br><br>
 
 <MudDataGrid Items="@_abastecimentos" T="Abastecimento" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true">
@@ -52,27 +54,107 @@
         <PropertyColumn Property="x => x.Litros" Title="Litros" Sortable="true" Filterable="true"/>
         <PropertyColumn Property="x => x.ValorTotalTransacao" Title="Total Gasto" Sortable="true" Filterable="true"/>
     </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Abastecimento"/>
+    </PagerContent>
 </MudDataGrid>
 
 @code {
     private IEnumerable<Abastecimento> _abastecimentos;
     private IList<IBrowserFile> _files = new List<IBrowserFile>();
 
+    private bool _isValid = true;
+
     private void uploadFile(IBrowserFile file)
     {
         _files.Add(file);
+        _isValid = false;
     }
 
     protected override async void OnInitialized()
     {
         try
         {
-            _abastecimentos =  new List<Abastecimento>();
+            _abastecimentos = new List<Abastecimento>();
         }
         catch (Exception e)
         {
             throw;
         }
+    }
+
+    private async Task ImportarDados()
+    {
+        if (_files.Any())
+        {
+            var file = _files.First();
+            var dadosAbastecimento = await ColetarDadosAbastecimento(file);
+
+            if (dadosAbastecimento != null && dadosAbastecimento.Any())
+            {
+                foreach (var abastecimento in dadosAbastecimento)
+                {
+                    abastecimento.Departamento = "Sem Departamento";
+                }
+                try
+                {
+                     _abastecimentos = dadosAbastecimento;
+                    // await _Context.Abastecimento.AddRangeAsync(dadosAbastecimento);
+                    // await _Context.SaveChangesAsync();
+                }
+                catch (Exception e)
+                {
+                    Snackbar.Add($"Ocorreu um erro ao salvar os dados de abastecimento {e.Message}");
+                }
+
+                
+                // _abastecimentos = await _Context.Abastecimento.ToListAsync();
+
+                Snackbar.Add("Dados abasteciento preenchidos com sucesso", Severity.Success);
+            }
+        }
+        else
+        {
+            Snackbar.Add("Erro: Nenuma informação encontrada", Severity.Error);
+        }
+    }
+
+    private async Task<IEnumerable<Abastecimento>> ColetarDadosAbastecimento(IBrowserFile arquivo)
+    {
+        List<Abastecimento> abastecimentos = new();
+
+            using (var stream = new MemoryStream())
+            {
+                await arquivo.OpenReadStream().CopyToAsync(stream);
+                stream.Position = 0;
+
+                using (XLWorkbook workbook = new(stream))
+                {
+                    var planilha = workbook.Worksheets.FirstOrDefault();
+                    var fileData = planilha?.RowsUsed().Skip(1).Select(row => new Abastecimento
+                    {
+                        DataDoAbastecimento = row.Cell(1).TryGetValue<string>(out var dataAbastecimento)
+                            ? DateTime.TryParse(dataAbastecimento, out var dataConvertida) ? dataConvertida.ToUniversalTime() : default
+                            : default,
+                        Uf = row.Cell(2).TryGetValue<string>(out var uf) ? uf : default,
+                        Placa = row.Cell(3).TryGetValue<string>(out var placa) ? placa : default,
+                        NomeDoMotorista = row.Cell(5).TryGetValue<string>(out var nomeDoMotorista) ? nomeDoMotorista : default,
+                        HodometroAtual = row.Cell(6).TryGetValue<double>(out var hodometroAtual) ? hodometroAtual : default,
+                        HodometroAnterior = row.Cell(7).TryGetValue<double>(out var hodometroAnterior) ? hodometroAnterior : default,
+                        DiferencaHodometro = row.Cell(8).TryGetValue<double>(out var diferencaHodometro) ? diferencaHodometro : default,
+                        MediaKm = row.Cell(9).TryGetValue<double>(out var mediaKm) ? mediaKm : default,
+                        Combustivel = row.Cell(10).TryGetValue<string>(out var combustivel) ? combustivel : default,
+                        Litros = row.Cell(11).TryGetValue<double>(out var litros) ? litros : default,
+                        ValorTotalTransacao = row.Cell(12).TryGetValue<decimal>(out var valorTotalTransacao) ? valorTotalTransacao : default,
+                        Preco = row.Cell(13).TryGetValue<decimal>(out var preco) ? preco : default
+                    }).ToList();
+
+                    fileData?.RemoveAll(a => a.Preco == 0);
+                    abastecimentos.AddRange(fileData ?? new List<Abastecimento>());
+                }
+            }
+
+            return abastecimentos;
     }
 
 }
