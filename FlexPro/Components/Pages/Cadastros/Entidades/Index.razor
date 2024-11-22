@@ -51,7 +51,7 @@
         {
             entidades = await _context.Entidade.ToListAsync();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             entidades = default!;
             throw;
