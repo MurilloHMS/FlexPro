@@ -80,7 +80,6 @@
     private int totalVeiculos = default!;
     private int totalRevisoes = default!;
     private int totalFornecedores = default!;
-    private List<RevisoesPorFornecedor> resumoRevisoesPorFornecedor = new List<RevisoesPorFornecedor>();
 
     private double[] DataResumoRevisoesPorFornecedores;
     private string[] LabelsResumoRevisoesPorFornecedores;
@@ -101,7 +100,7 @@
                 RevisoesCount = _context.Revisao.Count(r => r.VeiculoId == v.Id)
             }).ToList();
             
-        resumoRevisoesPorFornecedor = _context.Entidade
+        var resumoRevisoesPorFornecedor = _context.Entidade
             .Select(f => new RevisoesPorFornecedor
             {
                 Nome = f.Nome,
