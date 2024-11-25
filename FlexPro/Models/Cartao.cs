@@ -8,3 +8,4 @@ public class Cartao
     public decimal? Value { get; set; }
     public string? Category { get; set; }
 }
+

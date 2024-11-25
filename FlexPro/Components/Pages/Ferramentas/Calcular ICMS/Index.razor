@@ -1,0 +1,223 @@
+@page "/calcularICMS"
+@using System.Xml
+@using FlexPro.Models
+@using Microsoft.AspNetCore.Mvc
+@using LoadOptions = System.Xml.Linq.LoadOptions
+
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+<MudText Typo="Typo.h4" Align="Align.Center">Calcular ICMS</MudText>
+
+<MudStack Style="width: 100%">
+    <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                   Accept=".xml"
+                   @ref="@_fileUpload"
+                   OnFilesChanged="OnInputFileChanged"
+                   AppendMultipleFiles
+                   Hidden="@false"
+                   InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
+                   InputStyle="opacity:0"
+                   tabindex="-1"
+                   @ondrop="@ClearDragClass"
+                   @ondragenter="@SetDragClass"
+                   @ondragleave="@ClearDragClass"
+                   @ondragend="@ClearDragClass">
+        <ActivatorContent>
+            <MudPaper Height="300px"
+                      Outlined="true"
+                      Class="@_dragClass">
+                <MudText Typo="Typo.h6">
+                    Arraste e solte os arquivos aqui ou clique para selecionar.
+                </MudText>
+                @foreach (var file in _fileNames)
+                {
+                    <MudChip T="string"
+                             Color="Color.Dark"
+                             Text="@file.Name"
+                             tabindex="-1"/>
+                }
+            </MudPaper>
+        </ActivatorContent>
+    </MudFileUpload>
+    <MudToolBar Gutters="@false"
+                Class="relative d-flex justify-end gap-4">
+        <MudButton Color="Color.Primary"
+                   OnClick="@OpenFilePickerAsync"
+                   Variant="Variant.Filled">
+            Selecionar Arquivos
+        </MudButton>
+        <MudButton Color="Color.Primary"
+                   Disabled="@(!_fileNames.Any())"
+                   OnClick="@Upload"
+                   Variant="Variant.Filled">
+            Calcular ICMS
+        </MudButton>
+        <MudButton Color="Color.Error"
+                   Disabled="@(!_fileNames.Any())"
+                   OnClick="@ClearAsync"
+                   Variant="Variant.Filled">
+            Apagar arquivos
+        </MudButton>
+    </MudToolBar>
+</MudStack>
+
+<script>
+    function downloadFileFromStream(fileName, fileBase64) {
+        const link = document.createElement('a');
+        link.href = 'data:application/octet-stream;base64,' + fileBase64;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+
+@code {
+    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+    private string _dragClass = DefaultDragClass;
+    private readonly List<IBrowserFile> _fileNames = new();
+    private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
+
+    public List<ICMS> DadosICMS = new List<ICMS>();
+
+    private async Task ClearAsync()
+    {
+        await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
+        _fileNames.Clear();
+        ClearDragClass();
+    }
+
+    private Task OpenFilePickerAsync()
+        => _fileUpload?.OpenFilePickerAsync() ?? Task.CompletedTask;
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        ClearDragClass();
+        var files = e.GetMultipleFiles();
+        foreach (var file in files)
+        {
+            if (Path.GetExtension(file.Name).Contains("xml"))
+            {
+                _fileNames.Add(file);
+            }
+        }
+    }
+
+    private async void Upload()
+    {
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        Snackbar.Add("Iniciando Processamento dos arquivos...");
+
+        foreach (var file in _fileNames)
+        {
+            var dados = await ProcessarXML(file);
+            if (dados != null)
+            {
+                DadosICMS.Add(dados);
+            }
+        }
+
+        await SalvarDados();
+    }
+
+    private void SetDragClass()
+        => _dragClass = $"{DefaultDragClass} mud-border-primary";
+
+    private void ClearDragClass()
+        => _dragClass = DefaultDragClass;
+    
+    private async Task<ICMS> ProcessarXML(IBrowserFile file)
+    {
+        try
+        {
+            using (var stream = file.OpenReadStream())
+            {
+                XDocument xmlDoc = await XDocument.LoadAsync(stream, LoadOptions.None, CancellationToken.None);  
+                XNamespace ns = xmlDoc.Root.GetDefaultNamespace();
+
+                var dados = new ICMS();
+                var numNfTag = xmlDoc.Descendants(ns + "ide").FirstOrDefault();
+                if (numNfTag != null)
+                {
+                    dados.nNF = numNfTag.Element(ns + "nNF")?.Value;
+                }
+
+                var icmsTag = xmlDoc.Descendants(ns + "ICMSTot").FirstOrDefault();
+                if (icmsTag != null)
+                {
+                    string icms = icmsTag.Element(ns + "vICMS")?.Value;
+                    dados.vICMS = !string.IsNullOrEmpty(icms) && decimal.TryParse(icms, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result) ? result : 0m;
+                }
+
+                return dados;
+            }
+        }
+        catch (Exception e)
+        {
+            // Aqui você pode adicionar um tratamento de erro mais detalhado, se necessário
+            Snackbar.Add($"Erro ao processar o arquivo XML: {e.Message}", Severity.Error);
+            return null;
+        }
+    }
+
+    private async Task SalvarDados()
+    {
+        if (!DadosICMS.Any())
+        {
+            Snackbar.Add("Nenhuma infomação disponível para salvar", Severity.Warning);
+            return;
+        }
+
+        var outputFolder = Path.Combine(Path.GetTempPath(), "ICMS");
+        if (!Directory.Exists(outputFolder))
+        {
+            Directory.CreateDirectory(outputFolder);
+        }
+
+        string fileName = Path.Combine(outputFolder, $"ICMS_{DateTime.Now:dd-MM-yyyy}.xlsx");
+
+        using (var workbook = new XLWorkbook())
+        {
+            var worksheet = workbook.Worksheets.Add("ICMS");
+
+            worksheet.Cell(1, 1).Value = "Número da NFe";
+            worksheet.Cell(1, 2).Value = "Valor do ICMS";
+
+            int novaLinha = 2;
+
+            foreach (var linha in DadosICMS)
+            {
+                worksheet.Cell(novaLinha, 1).Value = int.TryParse(linha.nNF, out var valor) ? valor : 0;
+                worksheet.Cell(novaLinha, 2).Value = linha.vICMS;
+                novaLinha++;
+            }
+            
+            workbook.SaveAs(fileName);
+        }
+
+        var fileBytes = System.IO.File.ReadAllBytes(fileName);
+
+        await DownloadFile(fileBytes, "ICMS.xlsx");
+    }
+
+    private async Task DownloadFile(byte[] fileBytes, string fileName)
+    {
+        var fileStream = new BlazorDownloadFileStream(fileBytes);
+        var base64File = Convert.ToBase64String(fileBytes);
+
+        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, base64File);
+    }
+    
+    public class BlazorDownloadFileStream
+    {
+        public byte[] FileBytes { get; }
+
+        public BlazorDownloadFileStream(byte[] fileBytes)
+        {
+            FileBytes = fileBytes;
+        }
+    }
+}
+
