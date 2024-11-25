@@ -25,6 +25,7 @@
 
     <ItemGroup>
       <Folder Include="Components\Pages\Cadastros\" />
+      <Folder Include="wwwroot\Reports\" />
     </ItemGroup>
 
 
