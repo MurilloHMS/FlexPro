@@ -98,7 +98,10 @@
         var files = e.GetMultipleFiles();
         foreach (var file in files)
         {
-            _fileNames.Add(file);
+            if (Path.GetExtension(file.Name).Contains("xml"))
+            {
+                _fileNames.Add(file);
+            }
         }
     }
 
@@ -117,7 +120,6 @@
         }
 
         await SalvarDados();
-        await ClearAsync();
     }
 
     private void SetDragClass()
@@ -174,7 +176,7 @@
             Directory.CreateDirectory(outputFolder);
         }
 
-        string fileName = Path.Combine(outputFolder, $"ICMS_{DateTime.Now:dd-MM-yyyy dddd}.xlsx");
+        string fileName = Path.Combine(outputFolder, $"ICMS_{DateTime.Now:dd-MM-yyyy}.xlsx");
 
         using (var workbook = new XLWorkbook())
         {
@@ -202,11 +204,9 @@
 
     private async Task DownloadFile(byte[] fileBytes, string fileName)
     {
-        // Cria um Blob URL com o arquivo
         var fileStream = new BlazorDownloadFileStream(fileBytes);
         var base64File = Convert.ToBase64String(fileBytes);
 
-        // Aciona o download no navegador
         await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, base64File);
     }
     
