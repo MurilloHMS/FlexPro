@@ -1,7 +1,11 @@
 @page "/calcularICMS"
+@using System.Xml
 @using FlexPro.Models
+@using Microsoft.AspNetCore.Mvc
+@using LoadOptions = System.Xml.Linq.LoadOptions
 
 @inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
 
 <MudText Typo="Typo.h4" Align="Align.Center">Calcular ICMS</MudText>
 
@@ -58,14 +62,26 @@
     </MudToolBar>
 </MudStack>
 
+<script>
+    function downloadFileFromStream(fileName, fileBase64) {
+        const link = document.createElement('a');
+        link.href = 'data:application/octet-stream;base64,' + fileBase64;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+
 @code {
     private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
     private string _dragClass = DefaultDragClass;
     private readonly List<IBrowserFile> _fileNames = new();
     private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
-    
-    public List<ICMS> DadosICMS { get; set; }
-    
+
+    public List<ICMS> DadosICMS = new List<ICMS>();
+
     private async Task ClearAsync()
     {
         await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
@@ -86,17 +102,22 @@
         }
     }
 
-    private void Upload()
+    private async void Upload()
     {
-        // Upload the files here
         Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
-        Snackbar.Add("TODO: Upload your files!");
+        Snackbar.Add("Iniciando Processamento dos arquivos...");
 
         foreach (var file in _fileNames)
         {
-            DadosICMS.Add(ProcessarXML(file));
+            var dados = await ProcessarXML(file);
+            if (dados != null)
+            {
+                DadosICMS.Add(dados);
+            }
         }
-        
+
+        await SalvarDados();
+        await ClearAsync();
     }
 
     private void SetDragClass()
@@ -105,31 +126,98 @@
     private void ClearDragClass()
         => _dragClass = DefaultDragClass;
     
-    private ICMS ProcessarXML(IBrowserFile file)
+    private async Task<ICMS> ProcessarXML(IBrowserFile file)
     {
         try
         {
-            XDocument xmlDoc = XDocument.Load(file.OpenReadStream());
-            XNamespace ns = xmlDoc.Root.GetDefaultNamespace();
+            using (var stream = file.OpenReadStream())
+            {
+                XDocument xmlDoc = await XDocument.LoadAsync(stream, LoadOptions.None, CancellationToken.None);  
+                XNamespace ns = xmlDoc.Root.GetDefaultNamespace();
 
-            var dados = new ICMS();
-            var numNfTag = xmlDoc.Descendants(ns + "ide").FirstOrDefault();
-            if (numNfTag != null)
-            {
-                dados.nNF = numNfTag.Element(ns + "nNF").Value;
+                var dados = new ICMS();
+                var numNfTag = xmlDoc.Descendants(ns + "ide").FirstOrDefault();
+                if (numNfTag != null)
+                {
+                    dados.nNF = numNfTag.Element(ns + "nNF")?.Value;
+                }
+
+                var icmsTag = xmlDoc.Descendants(ns + "ICMSTot").FirstOrDefault();
+                if (icmsTag != null)
+                {
+                    string icms = icmsTag.Element(ns + "vICMS")?.Value;
+                    dados.vICMS = !string.IsNullOrEmpty(icms) && decimal.TryParse(icms, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result) ? result : 0m;
+                }
+
+                return dados;
             }
-            
-            var icmsTag = xmlDoc.Descendants(ns + "ICMSTot").FirstOrDefault();
-            if (icmsTag != null)
-            {
-                string icms = icmsTag.Element(ns + "vICMS").Value;
-                dados.vICMS = !string.IsNullOrEmpty(icms) && decimal.TryParse(icms, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result) ? result : 0m;
-            }
-            return dados;
         }
         catch (Exception e)
         {
-            throw;
+            // Aqui você pode adicionar um tratamento de erro mais detalhado, se necessário
+            Snackbar.Add($"Erro ao processar o arquivo XML: {e.Message}", Severity.Error);
+            return null;
+        }
+    }
+
+    private async Task SalvarDados()
+    {
+        if (!DadosICMS.Any())
+        {
+            Snackbar.Add("Nenhuma infomação disponível para salvar", Severity.Warning);
+            return;
+        }
+
+        var outputFolder = Path.Combine(Path.GetTempPath(), "ICMS");
+        if (!Directory.Exists(outputFolder))
+        {
+            Directory.CreateDirectory(outputFolder);
+        }
+
+        string fileName = Path.Combine(outputFolder, $"ICMS_{DateTime.Now:dd-MM-yyyy dddd}.xlsx");
+
+        using (var workbook = new XLWorkbook())
+        {
+            var worksheet = workbook.Worksheets.Add("ICMS");
+
+            worksheet.Cell(1, 1).Value = "Número da NFe";
+            worksheet.Cell(1, 2).Value = "Valor do ICMS";
+
+            int novaLinha = 2;
+
+            foreach (var linha in DadosICMS)
+            {
+                worksheet.Cell(novaLinha, 1).Value = int.TryParse(linha.nNF, out var valor) ? valor : 0;
+                worksheet.Cell(novaLinha, 2).Value = linha.vICMS;
+                novaLinha++;
+            }
+            
+            workbook.SaveAs(fileName);
+        }
+
+        var fileBytes = System.IO.File.ReadAllBytes(fileName);
+
+        await DownloadFile(fileBytes, "ICMS.xlsx");
+    }
+
+    private async Task DownloadFile(byte[] fileBytes, string fileName)
+    {
+        // Cria um Blob URL com o arquivo
+        var fileStream = new BlazorDownloadFileStream(fileBytes);
+        var base64File = Convert.ToBase64String(fileBytes);
+
+        // Aciona o download no navegador
+        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, base64File);
+    }
+    
+    public class BlazorDownloadFileStream
+    {
+        public byte[] FileBytes { get; }
+
+        public BlazorDownloadFileStream(byte[] fileBytes)
+        {
+            FileBytes = fileBytes;
         }
     }
 }
+
