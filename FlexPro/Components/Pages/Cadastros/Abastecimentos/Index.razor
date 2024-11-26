@@ -3,9 +3,11 @@
 @using FlexPro.Data
 @using FlexPro.Models
 @using Microsoft.EntityFrameworkCore
+
 @inject IDialogService DialogService
 @inject ApplicationDbContext _Context
 @inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
 
 @attribute [Authorize]
 
@@ -49,10 +51,25 @@
 
 <MudDataGrid Items="@AbastecimentosFiltrados" T="Abastecimento" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true">
     <ToolBarContent>
-        <MudText Typo="Typo.h6">Dados abastecimentos</MudText>
-        <MudSpacer/>
+        <MudStack Row="true" Spacing="3">
+            <MudFab OnClick="@(() => ExportarDados())" Color="Color.Primary" EndIcon="@Icons.Material.Filled.Download" Size="Size.Small" Label="Exportar"/>
+            <MudDivider Vertical="true" FlexItem="true"/>
+            <MudMenu FullWidth="true" ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Variant="Variant.Filled" Dense="true" >
+                <ActivatorContent>
+                    <MudFab EndIcon="@Icons.Material.Filled.Mouse" Color="Color.Primary" Size="Size.Small" Label="Relatórios"/>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem OnClick="@(() => Relatorios("Geral"))">Geral</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => Relatorios("Setor"))">Setor</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => Relatorios("Individual"))">Individual</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+            <MudDivider Vertical="true" FlexItem="true"/>
+            <MudFab Color="Color.Primary" EndIcon="@Icons.Material.Filled.Mail" Size="Size.Small" Label="Enviar"/>
+        </MudStack>
+            <MudSpacer/>
         <MudTextField @bind-Value="_searchString" Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true"
-                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"/>
+                    AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"/>
     </ToolBarContent>
     <Columns>
         <PropertyColumn Property="x => x.NomeDoMotorista" Title="Motorista" Sortable="true" Filterable="true"/>
@@ -67,6 +84,17 @@
         <MudDataGridPager T="Abastecimento"/>
     </PagerContent>
 </MudDataGrid>
+
+<script>
+    function downloadFileFromStream(fileName, fileBase64) {
+        const link = document.createElement('a');
+        link.href = 'data:application/octet-stream;base64,' + fileBase64;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
 
 @code {
     private bool _isValid = true;
@@ -199,4 +227,117 @@
             return abastecimentos;
     }
 
+    private async Task ExportarDados()
+    {
+        if(!AbastecimentosFiltrados.Any())
+        {
+            Snackbar.Add("Dados Abastecimentos não encontrados", Severity.Error);
+            return;
+        }
+
+        var outputFolder = Path.Combine(Path.GetTempPath(), "Abastecimento");
+        if(!Directory.Exists(outputFolder))
+        {
+            Directory.CreateDirectory(outputFolder);
+        }
+
+        string fileName = Path.Combine(outputFolder, $"Abastecimentos-{DateTime.Now:dd-mm-yyyy}.xlsx");
+
+        using (var workbook = new XLWorkbook())
+        {
+            var Worksheet = workbook.Worksheets.Add("Abastecimentos");
+
+            Worksheet.Cell(1,1).Value = "ID";
+            Worksheet.Cell(1,2).Value = "Data do Abastecimento";
+            Worksheet.Cell(1,3).Value = "UF";
+            Worksheet.Cell(1,4).Value = "Nome do Motorista";
+            Worksheet.Cell(1,5).Value = "Departamento";
+            Worksheet.Cell(1,6).Value = "Hodômetro Atual";
+            Worksheet.Cell(1,7).Value = "Hodômetro Anterior";
+            Worksheet.Cell(1,8).Value = "Diferença do Hodômetro";
+            Worksheet.Cell(1,9).Value = "Média KM/L";
+            Worksheet.Cell(1,10).Value = "Tipo do Combustível";
+            Worksheet.Cell(1,11).Value = "Litros Abastecidos";
+            Worksheet.Cell(1,12).Value = "Preço do Litro";
+            Worksheet.Cell(1,13).Value = "Valor Total";
+
+            int novaLinha = 2;
+
+            foreach(var linha in AbastecimentosFiltrados)
+            {
+                Worksheet.Cell(novaLinha, 1).Value = linha.Id;
+                Worksheet.Cell(novaLinha, 2).Value = linha.DataDoAbastecimento;
+                Worksheet.Cell(novaLinha, 3).Value = linha.Uf;
+                Worksheet.Cell(novaLinha, 4).Value = linha.NomeDoMotorista;
+                Worksheet.Cell(novaLinha, 5).Value = linha.Departamento;
+                Worksheet.Cell(novaLinha, 6).Value = linha.HodometroAtual;
+                Worksheet.Cell(novaLinha, 7).Value = linha.HodometroAnterior;
+                Worksheet.Cell(novaLinha, 8).Value = linha.DiferencaHodometro;
+                Worksheet.Cell(novaLinha, 9).Value = linha.MediaKm;
+                Worksheet.Cell(novaLinha, 10).Value = linha.Combustivel;
+                Worksheet.Cell(novaLinha, 11).Value = linha.Litros;
+                Worksheet.Cell(novaLinha, 12).Value = linha.Preco;
+                Worksheet.Cell(novaLinha, 13).Value = linha.ValorTotalTransacao;
+            
+               novaLinha++;
+            }
+
+            workbook.SaveAs(fileName);
+        }
+
+        var fileBytes = System.IO.File.ReadAllBytes(fileName);
+
+        Snackbar.Add("Dados Exportados Com Sucesso!", Severity.Success);
+        await DownloadFile(fileBytes, Path.GetFileName(fileName));
+
+    }
+    private async Task DownloadFile(byte[] fileBytes, string fileName)
+
+    {
+
+        var fileStream = new BlazorDownloadFileStream(fileBytes);
+
+        var base64File = Convert.ToBase64String(fileBytes);
+
+
+
+        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, base64File);
+
+    }
+
+    
+
+    public class BlazorDownloadFileStream
+
+    {
+
+        public byte[] FileBytes { get; }
+
+
+
+        public BlazorDownloadFileStream(byte[] fileBytes)
+
+        {
+
+            FileBytes = fileBytes;
+
+        }
+
+    }
+
+    private async Task Relatorios(string tipo)
+    {
+        switch (tipo)
+        {
+            case "Geral":
+                Snackbar.Add("Iniciando Download Relatório Geral", Severity.Success);
+                break;
+            case "Setor":
+                Snackbar.Add("Iniciando Download Relatório Setor", Severity.Success);
+                break;
+            case "Individual":
+                Snackbar.Add("Iniciando Download Relatório Individual", Severity.Success);
+                break;
+        }
+    }
 }

@@ -176,7 +176,7 @@
             Directory.CreateDirectory(outputFolder);
         }
 
-        string fileName = Path.Combine(outputFolder, $"ICMS_{DateTime.Now:dd-MM-yyyy}.xlsx");
+        string fileName = Path.Combine(outputFolder, $"ICMS-{DateTime.Now:dd-MM-yyyy}.xlsx");
 
         using (var workbook = new XLWorkbook())
         {
@@ -199,7 +199,7 @@
 
         var fileBytes = System.IO.File.ReadAllBytes(fileName);
 
-        await DownloadFile(fileBytes, "ICMS.xlsx");
+        await DownloadFile(fileBytes, Path.GetFileName(fileName));
     }
 
     private async Task DownloadFile(byte[] fileBytes, string fileName)
