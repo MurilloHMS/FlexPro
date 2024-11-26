@@ -10,14 +10,14 @@
 
     <ItemGroup>
         <PackageReference Include="ClosedXML" Version="0.104.2" />
-        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.*"/>
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.*"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.*"/>
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.*" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.*" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.*" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.*"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.*" />
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
-        <PackageReference Include="MudBlazor" Version="7.*"/>
-        <PackageReference Include="Extensions.MudBlazor.StaticInput" Version="2.*"/>
+        <PackageReference Include="MudBlazor" Version="7.*" />
+        <PackageReference Include="Extensions.MudBlazor.StaticInput" Version="2.*" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />
         <PackageReference Include="PDFsharp" Version="6.1.1" />
     </ItemGroup>
@@ -25,7 +25,6 @@
 
     <ItemGroup>
       <Folder Include="Components\Pages\Cadastros\" />
-      <Folder Include="wwwroot\Reports\" />
     </ItemGroup>
 
 
