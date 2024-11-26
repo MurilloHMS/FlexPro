@@ -54,18 +54,18 @@
         <MudStack Row="true" Spacing="3">
             <MudFab OnClick="@(() => ExportarDados())" Color="Color.Primary" EndIcon="@Icons.Material.Filled.Download" Size="Size.Small" Label="Exportar"/>
             <MudDivider Vertical="true" FlexItem="true"/>
-            <MudMenu FullWidth="true" ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Variant="Variant.Filled" Dense="true" >
+            <MudMenu FullWidth="true" ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Variant="Variant.Filled" Dense="true" Disabled="true" >
                 <ActivatorContent>
-                    <MudFab EndIcon="@Icons.Material.Filled.Mouse" Color="Color.Primary" Size="Size.Small" Label="Relatórios"/>
+                    <MudFab EndIcon="@Icons.Material.Filled.Mouse" Color="Color.Primary" Size="Size.Small" Label="Relatórios" Disabled="true"/>
                 </ActivatorContent>
                 <ChildContent>
-                    <MudMenuItem OnClick="@(() => Relatorios("Geral"))">Geral</MudMenuItem>
-                    <MudMenuItem OnClick="@(() => Relatorios("Setor"))">Setor</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => Relatorios("Geral"))" >Geral</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => Relatorios("Setor"))" >Setor</MudMenuItem>
                     <MudMenuItem OnClick="@(() => Relatorios("Individual"))">Individual</MudMenuItem>
                 </ChildContent>
             </MudMenu>
             <MudDivider Vertical="true" FlexItem="true"/>
-            <MudFab Color="Color.Primary" EndIcon="@Icons.Material.Filled.Mail" Size="Size.Small" Label="Enviar"/>
+            <MudFab Color="Color.Primary" EndIcon="@Icons.Material.Filled.Mail" Size="Size.Small" Label="Enviar" Disabled="true"/>
         </MudStack>
             <MudSpacer/>
         <MudTextField @bind-Value="_searchString" Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true"
@@ -327,17 +327,17 @@
 
     private async Task Relatorios(string tipo)
     {
-        switch (tipo)
+        var parametros = new DialogParameters<RelatoriosAbastecimentos>
         {
-            case "Geral":
-                Snackbar.Add("Iniciando Download Relatório Geral", Severity.Success);
-                break;
-            case "Setor":
-                Snackbar.Add("Iniciando Download Relatório Setor", Severity.Success);
-                break;
-            case "Individual":
-                Snackbar.Add("Iniciando Download Relatório Individual", Severity.Success);
-                break;
+            { x => x.tipo, tipo }
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<RelatoriosAbastecimentos>($"Relatório {tipo}",parametros, options);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            Snackbar.Add($"Iniciando Download Relatório {tipo}", Severity.Success);
         }
     }
 }

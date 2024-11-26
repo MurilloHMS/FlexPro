@@ -24,11 +24,6 @@
 
 
     <ItemGroup>
-      <Folder Include="Components\Pages\Cadastros\" />
-    </ItemGroup>
-
-
-    <ItemGroup>
       <AdditionalFiles Include="Components\Pages\Cadastros\Abastecimentos\Index.razor" />
       <AdditionalFiles Include="Components\Pages\Cadastros\Categorias\CadastrarCategorias.razor" />
       <AdditionalFiles Include="Components\Pages\Cadastros\Categorias\DialogCategorias.razor" />
