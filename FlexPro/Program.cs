@@ -5,6 +5,9 @@ using MudBlazor.Services;
 using FlexPro.Components;
 using FlexPro.Components.Account;
 using FlexPro.Data;
+using FlexPro.Models;
+using FlexPro.Services;
+using FlexPro.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +42,9 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<IEmailService, EmailService>();
 
 var app = builder.Build();
 
