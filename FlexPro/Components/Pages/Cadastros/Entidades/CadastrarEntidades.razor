@@ -27,6 +27,17 @@
     private MudForm form;
     private bool isFormValid;
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    
+    [Parameter]
+    public Entidade _entidade { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (_entidade is not null)
+        {
+            Entidade = _entidade;
+        }
+    }
 
     private void CloseDialog()
     {
@@ -37,9 +48,18 @@
     {
         try
         {
-            _context.Entidade.Add(Entidade);
-            _context.SaveChanges();
-            Snackbar.Add("Entidade cadastrada com Sucesso!", Severity.Success);
+            if (_entidade is not null)
+            {
+                _context.Entidade.Update(Entidade);
+                _context.SaveChanges();
+                Snackbar.Add("Entidade Atualizada com Sucesso!", Severity.Success);
+            }
+            else
+            {
+                _context.Entidade.Add(Entidade);
+                _context.SaveChanges();
+                Snackbar.Add("Entidade cadastrada com Sucesso!", Severity.Success);
+            }
         }
         catch (Exception e)
         {

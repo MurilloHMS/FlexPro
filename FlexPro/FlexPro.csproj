@@ -60,4 +60,10 @@
       <_ContentIncludedByDefault Remove="Components\Pages\Veiculos\Index.razor" />
     </ItemGroup>
 
+
+    <ItemGroup>
+      <Folder Include="Components\Pages\Relatorios\AbastecimentoGeral\" />
+      <Folder Include="Components\Pages\Relatorios\AbastecimentoSetor\" />
+    </ItemGroup>
+
 </Project>
