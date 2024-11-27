@@ -70,10 +70,10 @@
                     <MudFab Color="Color.Primary" EndIcon="@Icons.Material.Filled.Mail" Size="Size.Small" Label="Enviar"/>
                 </ActivatorContent>
                 <ChildContent>
-                    <MudMenuItem>Geral</MudMenuItem>
-                    <MudMenuItem>Setor</MudMenuItem>
-                    <MudMenuItem>Individual</MudMenuItem>
-                    <MudMenuItem>Todos</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => EnviarRelatorios("Geral"))">Geral</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => EnviarRelatorios("Setor"))">Setor</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => EnviarRelatorios("Individual"))">Individual</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => EnviarRelatorios("Todos"))">Todos</MudMenuItem>
                 </ChildContent>
             </MudMenu>
             
