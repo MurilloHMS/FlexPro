@@ -1,0 +1,60 @@
+@using FlexPro.Data
+@using FlexPro.Models
+@using Microsoft.AspNetCore.Authorization
+@inject IDialogService DialogService
+@inject ApplicationDbContext _context
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="12">
+                <MudForm @ref="form" @bind-IsValid="isFormValid">
+                    <MudDateRangePicker @bind-DateRange="@_dateRange" Margin="Margin.Dense" ReadOnly="false" Clearable="true"
+                                        PlaceholderStart="Data Inicial" PlaceholderEnd="Data Final" AutoClose="true" 
+                                        Color="Color.Primary"/>
+                </MudForm>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton OnClick="EmitirRelatório" Color="Color.Primary" Disabled="!isFormValid">Emitir</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    private MudForm form;
+    private bool isFormValid;
+    private DateRange _dateRange { get; set; }
+    
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    
+    [Parameter] 
+    public string tipo { get; set; }
+    
+    [Parameter]
+    public bool isDownload { get; set;}
+
+    private void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void EmitirRelatório()
+    {
+        try
+        {
+            
+            Snackbar.Add("Relatório emitido com sucesso!", Severity.Success);
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Ocorreu um erro ao Emitir o Relatório {tipo}: {e.Message}", Severity.Error);
+            throw;
+        }
+        MudDialog?.Close();
+    }
+    
+}

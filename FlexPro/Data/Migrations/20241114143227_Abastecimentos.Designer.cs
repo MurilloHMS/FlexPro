@@ -3,6 +3,7 @@ using System;
 using FlexPro.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace FlexPro.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241114143227_Abastecimentos")]
+    partial class Abastecimentos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -141,178 +144,6 @@ namespace FlexPro.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Abastecimento");
-                });
-
-            modelBuilder.Entity("FlexPro.Models.Categoria", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Categoria");
-                });
-
-            modelBuilder.Entity("FlexPro.Models.Entidade", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("ID");
-
-                    b.ToTable("Entidade");
-                });
-
-            modelBuilder.Entity("FlexPro.Models.Funcionarios", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Departamento")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Email")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Gerente")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Hash")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Hierarquia")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Funcionarios");
-                });
-
-            modelBuilder.Entity("FlexPro.Models.Produto", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CodigoSistema")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Descricao")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("IdReceita")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("MateriaPrima")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("QuantidadeFormula")
-                        .HasColumnType("numeric");
-
-                    b.Property<decimal>("QuantidadeProducao")
-                        .HasColumnType("numeric");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IdReceita");
-
-                    b.ToTable("Produto");
-                });
-
-            modelBuilder.Entity("FlexPro.Models.Receita", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<double>("Caixas")
-                        .HasColumnType("double precision");
-
-                    b.Property<double>("Embalagem")
-                        .HasColumnType("double precision");
-
-                    b.Property<string>("Nome")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal>("ValorMaoDeObra")
-                        .HasColumnType("numeric");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Receita");
-                });
-
-            modelBuilder.Entity("FlexPro.Models.Revisao", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("Data")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Kilometragem")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("LocalId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Motorista")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("NotaFiscal")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Observacao")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("VeiculoId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LocalId");
-
-                    b.HasIndex("VeiculoId");
-
-                    b.ToTable("Revisao");
                 });
 
             modelBuilder.Entity("FlexPro.Models.Veiculo", b =>
@@ -482,36 +313,6 @@ namespace FlexPro.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("FlexPro.Models.Produto", b =>
-                {
-                    b.HasOne("FlexPro.Models.Receita", "Receita")
-                        .WithMany()
-                        .HasForeignKey("IdReceita")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Receita");
-                });
-
-            modelBuilder.Entity("FlexPro.Models.Revisao", b =>
-                {
-                    b.HasOne("FlexPro.Models.Entidade", "Local")
-                        .WithMany()
-                        .HasForeignKey("LocalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("FlexPro.Models.Veiculo", "Veiculo")
-                        .WithMany()
-                        .HasForeignKey("VeiculoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Local");
-
-                    b.Navigation("Veiculo");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
