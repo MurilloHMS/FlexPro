@@ -28,6 +28,17 @@
     private bool isFormValid;
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
 
+    [Parameter]
+    public Categoria _categoria {get; set;}
+
+    protected override void OnInitialized()
+    {
+        if (_categoria is not null)
+        {
+            Categoria = _categoria;
+        }
+    }
+
     private void CloseDialog()
     {
         MudDialog.Cancel();
@@ -37,9 +48,18 @@
     {
         try
         {
-            _context.Categoria.Add(Categoria);
-            _context.SaveChanges();
-            Snackbar.Add("Categoria cadastrada com Sucesso!", Severity.Success);
+            if (_categoria is not null)
+            {
+                _context.Categoria.Update(Categoria);
+                _context.SaveChanges();
+                Snackbar.Add("Categoria cadastrada com Sucesso!", Severity.Success);
+            }
+            else
+            {
+                _context.Categoria.Add(Categoria);
+                _context.SaveChanges();
+                Snackbar.Add("Categoria cadastrada com Sucesso!", Severity.Success);
+            }
         }
         catch (Exception e)
         {

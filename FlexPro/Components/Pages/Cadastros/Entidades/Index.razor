@@ -10,7 +10,7 @@
 
 <PageTitle>Entidades</PageTitle>
 
-<MudText Typo="Typo.h2" Align="Align.Center">Entidades</MudText>
+<MudText Typo="Typo.h2" Align="Align.Center">Prestadores e Fornecedores</MudText>
 <br><br><br>
 
 <MudDataGrid Items="@EntidadesFiltradas" T="Entidade" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple">
@@ -24,7 +24,9 @@
         <PropertyColumn Property="x => x.Nome" Title="Nome" Sortable="true" Filterable="true"/>
         <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
             <CellTemplate>
-                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => ApagarEntidades(@context.Item))" />
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenEditDialogAsync(@context.Item))"/>
+                <MudSpacer/>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => ApagarEntidades(@context.Item))"/>
             </CellTemplate>
         </TemplateColumn>
     </Columns>
@@ -82,7 +84,24 @@
     private async Task OpenDialogAsync()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
-        var dialog = await DialogService.ShowAsync<CadastrarEntidades>("Cadastro de Categorias", options);
+        var dialog = await DialogService.ShowAsync<CadastrarEntidades>("Cadastro de Prestadores e Fornecedores", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            entidades = await _context.Entidade.ToListAsync();
+        }
+    }
+    
+    private async Task OpenEditDialogAsync(Entidade entidade)
+    {
+        var parametros = new DialogParameters<CadastrarEntidades>
+        {
+            { x => x._entidade, entidade }
+        };
+        
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarEntidades>("Editar Prestadores e Fornecedores", parametros ,options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
