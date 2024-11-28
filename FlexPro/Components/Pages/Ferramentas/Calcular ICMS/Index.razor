@@ -1,11 +1,14 @@
 @page "/calcularICMS"
 @using System.Xml
 @using FlexPro.Models
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Mvc
 @using LoadOptions = System.Xml.Linq.LoadOptions
 
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
+
+@attribute [Authorize]
 
 <MudText Typo="Typo.h4" Align="Align.Center">Calcular ICMS</MudText>
 

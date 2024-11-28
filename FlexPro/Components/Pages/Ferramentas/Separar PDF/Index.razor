@@ -1,9 +1,12 @@
 @page "/separarPDF"
 @using System.Net
 @using FlexPro.Models
+@using Microsoft.AspNetCore.Authorization
 
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
+
+@attribute [Authorize]
 
 <MudText Typo="Typo.h4">Separar PDF</MudText>
 
