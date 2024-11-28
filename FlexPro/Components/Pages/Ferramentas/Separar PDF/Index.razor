@@ -1,7 +1,9 @@
 @page "/separarPDF"
+@using System.Net
 @using FlexPro.Models
 
 @inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
 
 <MudText Typo="Typo.h4">Separar PDF</MudText>
 
@@ -13,6 +15,7 @@
                    InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
                    InputStyle="opacity:0"
                    tabindex="-1"
+                   Accept=".pdf"
                    @ondrop="@ClearDragClass"
                    @ondragenter="@SetDragClass"
                    @ondragleave="@ClearDragClass"
@@ -61,11 +64,22 @@
     <MudStack>
         @foreach (var pagina in paginasSeparadas)
         {
-            <MudTextField T="string" Label="Nome do arquivo" @bind-Value="pagina.Nome" />
+            <MudTextField Label="Nome do arquivo" @bind-Value="pagina.Nome" />
         }
     </MudStack>
-    <MudButton Color="Color.Primary" Variant="Variant.Filled">Salvar</MudButton>
+    <MudButton OnClick="@(() => SalvarDados())" Color="Color.Primary" Variant="Variant.Filled">Salvar</MudButton>
 }
+
+<script>
+    function downloadFileFromStream(fileName, fileBase64) {
+        const link = document.createElement('a');
+        link.href = 'data:application/octet-stream;base64,' + fileBase64;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
 
 @code {
 
@@ -122,7 +136,7 @@
         {
             if (file is null || file.Size is 0)
             {
-                Snackbar.Add($"Arquivo {file.Name} inv·lido", Severity.Error);
+                Snackbar.Add($"Arquivo {file.Name} inv√°lido", Severity.Error);
                 return;
             }
 
@@ -135,7 +149,7 @@
             var paginas = SepararPDF.GetSeparatePdfByPage(inputPdfPath);
             if (paginas is null || paginas.Count is 0)
             {
-                Snackbar.Add("N„o È possÌvel extrair paginas do pdf informado", Severity.Error);
+                Snackbar.Add("N√£o √© poss√≠vel extrair paginas do pdf informado", Severity.Error);
                 return;
             }
 
@@ -148,5 +162,47 @@
 
     }
 
+    private async Task SalvarDados()
+    {
+        if (paginasSeparadas is not null && paginasSeparadas.Any())
+        {
+            var outputFolder = Path.Combine(Path.GetTempPath(), "Separados");
+            if (!Directory.Exists(outputFolder))
+            {
+                Directory.CreateDirectory(outputFolder);
+            }
+            
+            SepararPDF.SeparatedPdfByPage(inputPdfPath, outputFolder, paginasSeparadas);
+
+            string zipFileName = "PDF_Separados.zip";
+            string userDownloadsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+            string zipFilePath = Path.Combine(userDownloadsPath, zipFileName);
+
+            int fileIndex = 1;
+            while (File.Exists(zipFilePath))
+            {
+                zipFileName = $"Separados({fileIndex}).zip";
+                zipFilePath = Path.Combine(userDownloadsPath, zipFileName);
+                fileIndex++;
+            }
+            
+            System.IO.Compression.ZipFile.CreateFromDirectory(outputFolder, zipFilePath);
+            
+            Directory.Delete(outputFolder, true);
+            File.Delete(inputPdfPath);
+
+            var fileBytes = File.ReadAllBytes(zipFilePath);
+
+            await DownloadFile(fileBytes, Path.GetFileName(zipFilePath));
+
+        }
+    }
     
+    private async Task DownloadFile(byte[] fileBytes, string fileName)
+    {
+        var fileStream = new BlazorDownloadFileStream(fileBytes);
+        var base64File = Convert.ToBase64String(fileBytes);
+
+        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, base64File);
+    }
 }

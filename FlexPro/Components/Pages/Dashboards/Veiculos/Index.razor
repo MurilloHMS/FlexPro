@@ -63,7 +63,7 @@
 <MudGrid>
     <MudItem xs="12" sm="7">
         <MudPaper Class="pa-4">
-            <MudChart ChartType="ChartType.Bar" Width="100%" Height="250px" />
+            <MudChart ChartType="ChartType.Bar" Width="100%" Height="250px" InputData="@DataVeiculosPorMarca" InputLabels="@LabelsVeiculosPorMarca" LegendPosition="Position.Bottom"/>
         </MudPaper>
     </MudItem>
     <MudItem xs="12" sm="5">
@@ -83,6 +83,8 @@
 
     private double[] DataResumoRevisoesPorFornecedores;
     private string[] LabelsResumoRevisoesPorFornecedores;
+    private string[] LabelsVeiculosPorMarca;
+    private double[] DataVeiculosPorMarca;
     
     protected override void OnInitialized()
     {
@@ -110,17 +112,12 @@
         DataResumoRevisoesPorFornecedores = resumoRevisoesPorFornecedor.Select(r => (double)r.RevisoesCount).ToArray();
         LabelsResumoRevisoesPorFornecedores = resumoRevisoesPorFornecedor.Select(r => r.Nome).ToArray();
 
-        var revisoesPorFornecedor = _context.Entidade
-            .Select(f => new
-            {
-                Nome = f.Nome,
-                RevisoesCount = _context.Revisao.Count(r => r.LocalId == f.ID)
-            }).ToList();
-
         var veiculosPorMarca = _context.Veiculo
             .GroupBy(v => v.Placa)
             .Select(g => new { Brand = g.Key, Count = g.Count() })
             .ToList();
+        LabelsVeiculosPorMarca = veiculosPorMarca.Select(r => r.Brand).ToArray();
+        DataVeiculosPorMarca = veiculosPorMarca.Select(r => (double)r.Count).ToArray();
     }
     
     private class RevisoesPorFornecedor
@@ -129,4 +126,9 @@
         public int RevisoesCount { get; set; }
     }
 
+    private class VeiculosPorMarca
+    {
+        public string Brand { get; set; }
+        public int Count { get; set; }
+    }
 }
