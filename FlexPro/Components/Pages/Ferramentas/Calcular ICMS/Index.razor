@@ -209,15 +209,5 @@
 
         await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, base64File);
     }
-    
-    public class BlazorDownloadFileStream
-    {
-        public byte[] FileBytes { get; }
-
-        public BlazorDownloadFileStream(byte[] fileBytes)
-        {
-            FileBytes = fileBytes;
-        }
-    }
 }
 
