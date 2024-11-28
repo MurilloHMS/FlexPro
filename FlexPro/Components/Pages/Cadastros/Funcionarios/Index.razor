@@ -1,9 +1,12 @@
 @page "/funcionarios"
 @using FlexPro.Data
 @using FlexPro.Models
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext _context
 @inject IDialogService DialogService
+
+@attribute [Authorize]
 
 <PageTitle>Funcionários</PageTitle>
 
