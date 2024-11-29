@@ -49,7 +49,7 @@
     </MudOverlay>
 }
 
-<MudDataGrid Items="@AbastecimentosFiltrados" T="Abastecimento" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true">
+<MudDataGrid Items="@AbastecimentosFiltrados" T="Abastecimento" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true" Virtualize="true">
     <ToolBarContent>
         <MudStack Row="true" Spacing="3">
             <MudFab OnClick="@(() => ExportarDados())" Color="Color.Primary" EndIcon="@Icons.Material.Filled.Download" Size="Size.Small" Label="Exportar"/>
