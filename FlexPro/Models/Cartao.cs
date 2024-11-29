@@ -2,10 +2,10 @@ namespace FlexPro.Models;
 
 public class Cartao
 {
-    public string? Name { get; set; }
-    public DateTime? Date { get; set; }
-    public string? Description { get; set; }
-    public decimal? Value { get; set; }
-    public string? Category { get; set; }
+    public string? Nome { get; set; }
+    public DateTime? Data { get; set; }
+    public string? Descricao { get; set; }
+    public decimal? Valor { get; set; }
+    public string? Categoria { get; set; }
 }
 
