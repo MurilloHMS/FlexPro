@@ -169,7 +169,7 @@
             }
 
             resultado.AppendLine();
-            resultado.AppendLine($"Total: {totalValorPrest.ToString("C", CultureInfo.CurrentCulture)}");
+            resultado.AppendLine($"Total: R$ {totalValorPrest}");
             resultadoDosCalculos = resultado.ToString();
             
             Snackbar.Add("Dados Processados Com Sucesso!", Severity.Success);
@@ -206,7 +206,7 @@
                     ? vTPrestValue
                     : 0m;
 
-                return ($"{vTPrest:C} ", vTPrest);
+                return ($"R$ {vTPrest} ", vTPrest);
             }
             else
             {
