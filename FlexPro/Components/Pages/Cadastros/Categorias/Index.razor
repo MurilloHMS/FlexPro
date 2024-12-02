@@ -13,7 +13,7 @@
 <MudText Typo="Typo.h2" Align="Align.Center">Categorias</MudText>
 <br><br><br>
 
-<MudDataGrid Items="@CategoriasFiltradas" T="Categoria" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple">
+<MudDataGrid Items="@CategoriasFiltradas" T="Categoria" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Virtualize>
     <ToolBarContent>
         <MudButton @onclick="@(() =>OpenDialogAsync())" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary">Cadastrar</MudButton>
         <MudSpacer/>

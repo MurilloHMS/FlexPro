@@ -36,13 +36,13 @@
             _context.Entidade.Remove(Entidade);
             await _context.SaveChangesAsync();
             Snackbar.Add("Entidade Deletada", Severity.Success);
+            MudDialog?.Close(DialogResult.Ok(true));
         }
         catch (Exception e)
         {
             Snackbar.Add("Ocorreu um erro ao deletar a Entidade", Severity.Error);
             throw;
         }
-        MudDialog.Close(DialogResult.Ok(true));
     }
 
     private void Cancel() => MudDialog.Cancel();
