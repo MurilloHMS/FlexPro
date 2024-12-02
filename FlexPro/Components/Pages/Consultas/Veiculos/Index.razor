@@ -21,7 +21,7 @@
 <MudButton OnClick="@(() => BuscarRevisoes())" StartIcon="@Icons.Material.Filled.Search" Variant="Variant.Filled" Color="Color.Primary">Buscar Informações</MudButton>
 <br><br>
 
-<MudDataGrid Items="@RevisoesFiltradas" T="Revisao" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true">
+<MudDataGrid Items="@RevisoesFiltradas" T="Revisao" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true" Virtualize>
     <ToolBarContent>
         <MudText Label="Dados do Veiculo"/>
         <MudSpacer/>

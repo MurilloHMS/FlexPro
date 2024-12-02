@@ -12,7 +12,7 @@
 
 <MudText Typo="Typo.h2" Align="Align.Center">Funcionários</MudText>
 <br><br><br>
-<MudDataGrid Items="@funcionariosFiltrados" T="Funcionarios" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true">
+<MudDataGrid Items="@funcionariosFiltrados" T="Funcionarios" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true" Virtualize>
     <ToolBarContent>
         <MudButton @onclick="@(() => OpenDialogAsync())" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" >Cadastrar</MudButton>
         <MudSpacer/>
