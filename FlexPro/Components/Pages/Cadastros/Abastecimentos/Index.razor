@@ -15,7 +15,6 @@
 
 <MudText Typo="Typo.h5">Abastecimentos</MudText>
 <br><br>
-
 <MudFileUpload T="IBrowserFile" Accept=".xlsx, .xls" MaximumFileCount="100" FilesChanged="uploadFile">
     <ActivatorContent>
         <MudButton Variant="Variant.Filled"
@@ -25,7 +24,6 @@
         </MudButton>
     </ActivatorContent>
 </MudFileUpload>
-
 
 @if (_files != null)
 {
@@ -76,11 +74,10 @@
                     <MudMenuItem OnClick="@(() => EnviarRelatorios("Todos"))">Todos</MudMenuItem>
                 </ChildContent>
             </MudMenu>
-            
         </MudStack>
-            <MudSpacer/>
+        <MudSpacer/>
         <MudTextField @bind-Value="_searchString" Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true"
-                    AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"/>
+        AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"/>
     </ToolBarContent>
     <Columns>
         <PropertyColumn Property="x => x.NomeDoMotorista" Title="Motorista" Sortable="true" Filterable="true"/>
@@ -98,12 +95,12 @@
 
 <script>
     function downloadFileFromStream(fileName, fileBase64) {
-        const link = document.createElement('a');
-        link.href = 'data:application/octet-stream;base64,' + fileBase64;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    const link = document.createElement('a');
+    link.href = 'data:application/octet-stream;base64,' + fileBase64;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     }
 </script>
 
@@ -111,7 +108,7 @@
     private bool _isValid = true;
     private bool dataLoaded;
     private bool visible;
-    
+
     private IEnumerable<Abastecimento> _abastecimentos;
     private IList<IBrowserFile> _files = new List<IBrowserFile>();
 
@@ -144,6 +141,7 @@
         }
         catch (Exception e)
         {
+            Snackbar.Add($"Ocorreu um erro ao coletar os dados de abastecimento {e.Message}");
             throw;
         }
     }
@@ -162,19 +160,10 @@
                 foreach (var abastecimento in dadosAbastecimento)
                 {
                     var departamento = _Context.Funcionarios.FirstOrDefault(f => f.Nome.ToUpper().Contains(abastecimento.NomeDoMotorista.ToUpper()));
-
-                    if (departamento != null)
-                    {
-                        abastecimento.Departamento = departamento.Departamento;
-                    }
-                    else
-                    {
-                        abastecimento.Departamento = "Sem Departamento";
-                    }
+                    abastecimento.Departamento = departamento != null ? departamento.Departamento : "Sem Departamento";
                 }
                 try
                 {
-                     // _abastecimentos = dadosAbastecimento;
                     await _Context.Abastecimento.AddRangeAsync(dadosAbastecimento);
                     await _Context.SaveChangesAsync();
                 }
@@ -182,10 +171,8 @@
                 {
                     Snackbar.Add($"Ocorreu um erro ao salvar os dados de abastecimento {e.Message}");
                 }
-
-                
+                                
                 _abastecimentos = await _Context.Abastecimento.ToListAsync();
-
                 Snackbar.Add("Dados abasteciento preenchidos com sucesso", Severity.Success);
                 _files.Clear();
             }
@@ -253,7 +240,6 @@
         }
 
         string fileName = Path.Combine(outputFolder, $"Abastecimentos-{DateTime.Now:dd-mm-yyyy}.xlsx");
-
         using (var workbook = new XLWorkbook())
         {
             var Worksheet = workbook.Worksheets.Add("Abastecimentos");
@@ -295,45 +281,24 @@
 
             workbook.SaveAs(fileName);
         }
-
         var fileBytes = System.IO.File.ReadAllBytes(fileName);
-
         Snackbar.Add("Dados Exportados Com Sucesso!", Severity.Success);
         await DownloadFile(fileBytes, Path.GetFileName(fileName));
-
     }
     private async Task DownloadFile(byte[] fileBytes, string fileName)
-
     {
-
         var fileStream = new BlazorDownloadFileStream(fileBytes);
-
         var base64File = Convert.ToBase64String(fileBytes);
-
-
-
         await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, base64File);
-
     }
 
-    
-
     public class BlazorDownloadFileStream
-
     {
-
         public byte[] FileBytes { get; }
-
-
-
         public BlazorDownloadFileStream(byte[] fileBytes)
-
         {
-
             FileBytes = fileBytes;
-
         }
-
     }
 
     private async Task DownloadRelatorios(string tipo)
@@ -360,7 +325,6 @@
             {x => x.tipo, tipo},
             {x => x.isDownload, false}
         };
-
         var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
         var dialog = await DialogService.ShowAsync<RelatoriosAbastecimentos>($"Envio do Relatório {tipo}", parametros, options);
         var result = await dialog.Result;

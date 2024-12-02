@@ -26,47 +26,46 @@
     private Entidade Entidade = new Entidade();
     private MudForm form;
     private bool isFormValid;
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    
+    [CascadingParameter] 
+    MudDialogInstance MudDialog { get; set; }
     
     [Parameter]
     public Entidade _entidade { get; set; }
 
     protected override void OnInitialized()
     {
-        if (_entidade is not null)
+        if (_entidade != null)
         {
             Entidade = _entidade;
         }
     }
 
-    private void CloseDialog()
-    {
-        MudDialog.Cancel();
-    }
+    private void CloseDialog() => MudDialog.Cancel();
 
-    private void Salvar()
+    private async Task Salvar()
     {
         try
         {
-            if (_entidade is not null)
+            if (_entidade == null)
             {
-                _context.Entidade.Update(Entidade);
-                _context.SaveChanges();
-                Snackbar.Add("Entidade Atualizada com Sucesso!", Severity.Success);
+                await _context.Entidade.AddAsync(Entidade);
+                Snackbar.Add("Entidade cadastrada com sucesso!", Severity.Success);
             }
             else
             {
-                _context.Entidade.Add(Entidade);
-                _context.SaveChanges();
-                Snackbar.Add("Entidade cadastrada com Sucesso!", Severity.Success);
+                _context.Entidade.Update(Entidade);
+                Snackbar.Add("Entidade atualizada com sucesso!", Severity.Success);
             }
+
+            await _context.SaveChangesAsync();
+            MudDialog?.Close(DialogResult.Ok(Entidade));
         }
         catch (Exception e)
         {
             Snackbar.Add($"Ocorreu um erro ao cadastrar a Entidade: {e.Message}", Severity.Error);
             throw;
         }
-        MudDialog?.Close(DialogResult.Ok(Entidade));
     }
     
 }
