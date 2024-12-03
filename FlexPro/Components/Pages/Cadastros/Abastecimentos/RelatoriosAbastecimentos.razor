@@ -1,9 +1,11 @@
 @using FlexPro.Data
 @using FlexPro.Models
 @using Microsoft.AspNetCore.Authorization
+
 @inject IDialogService DialogService
 @inject ApplicationDbContext _context
 @inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
 @attribute [Authorize]
 
@@ -46,7 +48,21 @@
     {
         try
         {
-            Snackbar.Add("Relatório emitido com sucesso!", Severity.Success);
+            if (_dateRange != null && _dateRange.End.HasValue)
+            {
+                string dataFinalFormatada = _dateRange.End.Value.ToString("yyyy-MM-dd");
+                switch (tipo)
+                {
+                    case "Geral":
+                        Navigation.NavigateTo($"/Relatorios/Abastecimento/Geral/{dataFinalFormatada}");
+                        break;
+                }
+            }
+            else
+            {
+                Snackbar.Add("Por favor, selecione um intervalo de datas válido.", Severity.Warning);
+            }
+            
         }
         catch (Exception e)
         {

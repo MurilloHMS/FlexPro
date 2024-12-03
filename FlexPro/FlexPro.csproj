@@ -62,7 +62,6 @@
 
 
     <ItemGroup>
-      <Folder Include="Components\Pages\Relatorios\AbastecimentoGeral\" />
       <Folder Include="Components\Pages\Relatorios\AbastecimentoSetor\" />
     </ItemGroup>
 
