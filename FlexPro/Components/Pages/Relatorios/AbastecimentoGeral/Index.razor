@@ -8,7 +8,7 @@
 
 <MudText Typo="Typo.h3" Align="Align.Center">Métricas do relatório</MudText>
 
-<MudTextField T="string" Label="Dados para o relatório" Variant="Variant.Outlined" Text="@resultado" AutoGrow/>
+<MudTextField T="string" Label="Dados para o relatório" Variant="Variant.Outlined" Text="@resultado" Lines="15"/>
 
 @code {
     private string? resultado { get; set; }
@@ -78,14 +78,24 @@
 
         var porcentagemTotalLitros = (TotalLitrosMesAtual / TotalLitrosMesAnterior) -1;
         var descritivoTotalLitros = porcentagemTotalLitros < 0 ? "caiu" : "aumentou";
-        sb.AppendLine($"Quantidade de litros abastecidos {descritivoTotalLitros} em {porcentagemTotalLitros:P} de R$ {TotalLitrosMesAnterior:N} para R$ {TotalLitrosMesAtual:N}");
-        sb.AppendLine();
+        sb.AppendLine($"Quantidade de litros abastecidos {descritivoTotalLitros} em {porcentagemTotalLitros:P} de {TotalLitrosMesAnterior:N} para {TotalLitrosMesAtual:N}");
 
         var porcentagemMediaKm = (MediaKmMesAtual / MediaKmMesAnterior) - 1;
         var descritivoMediaKm = porcentagemMediaKm < 0 ? "caiu" : "aumentou";
         sb.AppendLine($"Média de KM/L {descritivoMediaKm} {porcentagemMediaKm:P} de {MediaKmMesAnterior:N} para {MediaKmMesAtual:N}");
+        
+        var porcentagemMediaDePreco = (MediaPrecoLitroMesAtual / MediaPrecoLitroMesAnterior) - 1;
+        var descritivoMediaDePreco = porcentagemMediaDePreco < 0 ? "caiu" : "aumentou";
+        sb.AppendLine($"Média de Preço/L {descritivoMediaDePreco} {porcentagemMediaDePreco:P} de R$ {MediaPrecoLitroMesAnterior:N} para R$ {MediaPrecoLitroMesAtual:N}");
 
+        var porcentagemTotalGasto = (ValorTotalGastoMesAtual / ValorTotalGastoMesAnterior) - 1;
+        var descritivoTotalGasto = porcentagemTotalGasto < 0 ? "caiu" : "aumentou";
+        sb.AppendLine($"Valor Total Gasto {descritivoTotalGasto} {porcentagemTotalGasto:P} de R$ {ValorTotalGastoMesAnterior:N} para R$ {ValorTotalGastoMesAtual:N} ");
 
+        var porcentagemDistanciaPercorrida = (TotalPercorridoMesAtual / TotalPercorridoMesAnterior) - 1;
+        var descritivoDistanciaPercorrida = porcentagemDistanciaPercorrida < 0 ? "caiu" : "aumentou";
+        sb.AppendLine($"Distancia percorrida {descritivoDistanciaPercorrida} {porcentagemDistanciaPercorrida:P} de {TotalPercorridoMesAnterior:N0}KM para {TotalPercorridoMesAtual:N0}KM");
+        
         return sb.ToString();
     }
 }

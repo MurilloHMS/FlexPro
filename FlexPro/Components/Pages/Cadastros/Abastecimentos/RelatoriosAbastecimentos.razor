@@ -14,9 +14,7 @@
         <MudGrid>
             <MudItem xs="12" sm="12">
                 <MudForm @ref="form" @bind-IsValid="isFormValid">
-                    <MudDateRangePicker @bind-DateRange="@_dateRange" Margin="Margin.Dense" ReadOnly="false" Clearable="true"
-                                        PlaceholderStart="Data Inicial" PlaceholderEnd="Data Final" AutoClose="true" 
-                                        Color="Color.Primary"/>
+                    <MudDatePicker Label="Selecione o mês para puxar os dados" @bind-Date="_date" OpenTo="OpenTo.Year" FixDay="1" DateFormat="MMMM/yyyy"/>
                 </MudForm>
             </MudItem>
         </MudGrid>
@@ -29,7 +27,7 @@
 @code {
     private MudForm form;
     private bool isFormValid;
-    private DateRange _dateRange { get; set; }
+    private DateTime? _date;
     
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     
@@ -48,13 +46,16 @@
     {
         try
         {
-            if (_dateRange != null && _dateRange.End.HasValue)
+            if (_date != null)
             {
-                string dataFinalFormatada = _dateRange.End.Value.ToString("yyyy-MM-dd");
+                string dataFinalFormatada = _date.Value.ToString("yyyy-MM-dd");
                 switch (tipo)
                 {
                     case "Geral":
                         Navigation.NavigateTo($"/Relatorios/Abastecimento/Geral/{dataFinalFormatada}");
+                        break;
+                    case "Setor":
+                        Navigation.NavigateTo($"/Relatorios/Abastecimento/Setor/{dataFinalFormatada}");
                         break;
                 }
             }
