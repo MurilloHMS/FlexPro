@@ -104,11 +104,11 @@
 
                 var porcentagemMediaDePreco = (MediaPrecoLitroMesAtual / MediaPrecoLitroMesAnterior) - 1;
                 var descritivoMediaDePreco = porcentagemMediaDePreco < 0 ? "caiu" : "aumentou";
-                sb.AppendLine($"Média de Preço/L {descritivoMediaDePreco} {porcentagemMediaDePreco:P} de R$ {MediaPrecoLitroMesAnterior:N} para R$ {MediaPrecoLitroMesAtual:N}");
+                sb.AppendLine($"Média de Preço/L {descritivoMediaDePreco} {porcentagemMediaDePreco:P} de {MediaPrecoLitroMesAnterior:C} para {MediaPrecoLitroMesAtual:C}");
 
                 var porcentagemTotalGasto = (ValorTotalGastoMesAtual / ValorTotalGastoMesAnterior) - 1;
                 var descritivoTotalGasto = porcentagemTotalGasto < 0 ? "caiu" : "aumentou";
-                sb.AppendLine($"Valor Total Gasto {descritivoTotalGasto} {porcentagemTotalGasto:P} de R$ {ValorTotalGastoMesAnterior:N} para R$ {ValorTotalGastoMesAtual:N} ");
+                sb.AppendLine($"Valor Total Gasto {descritivoTotalGasto} {porcentagemTotalGasto:P} de {ValorTotalGastoMesAnterior:C} para {ValorTotalGastoMesAtual:C} ");
 
                 var porcentagemDistanciaPercorrida = (TotalPercorridoMesAtual / TotalPercorridoMesAnterior) - 1;
                 var descritivoDistanciaPercorrida = porcentagemDistanciaPercorrida < 0 ? "caiu" : "aumentou";
