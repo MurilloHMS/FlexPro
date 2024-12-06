@@ -76,14 +76,14 @@
             TotalPercorridoMesAtual = abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.DiferencaHodometro);
             TotalPercorridoMesAnterior = abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.DiferencaHodometro);
 
-            MediaKmMesAtual = abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.MediaKm) / abastecimentoMesAtual.Count();
-            MediaKmMesAnterior = abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.MediaKm) / abastecimentoMesAnterior.Count();
+            MediaKmMesAtual = abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.MediaKm) / abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Count();
+            MediaKmMesAnterior = abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.MediaKm) / abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Count();
 
             ValorTotalGastoMesAtual = abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.ValorTotalTransacao);
             ValorTotalGastoMesAnterior = abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.ValorTotalTransacao);
 
-            MediaPrecoLitroMesAtual = abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.Preco) / abastecimentoMesAtual.Count();
-            MediaPrecoLitroMesAnterior = abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.Preco) / abastecimentoMesAnterior.Count();
+            MediaPrecoLitroMesAtual = abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.Preco) / abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Count();
+            MediaPrecoLitroMesAnterior = abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.Preco) / abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Count();
 
             sb.AppendLine();
             sb.AppendLine($"Departamento {departamento}");
