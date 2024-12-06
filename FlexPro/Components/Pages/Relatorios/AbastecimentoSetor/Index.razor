@@ -1,0 +1,114 @@
+@page "/Relatorios/Abastecimento/Setor/{Data}"
+@using System.Text
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Authorization
+@using FlexPro.Data
+
+@inject NavigationManager Navigation
+@inject ApplicationDbContext _context
+
+@attribute [Authorize]
+
+<MudText Typo="Typo.h3" Align="Align.Center">Métricas do relatório Setores</MudText>
+
+<MudTextField T="string" Label="Dados para o relatório" Variant="Variant.Outlined" Text="@resultado" Lines="30"/>
+
+@code {
+    private string? resultado;
+
+    private double? TotalLitrosMesAtual;
+    private double? TotalLitrosMesAnterior;
+    private double? TotalPercorridoMesAtual;
+    private double? TotalPercorridoMesAnterior;
+    private double? MediaKmMesAtual;
+    private double? MediaKmMesAnterior;
+    private decimal? ValorTotalGastoMesAtual;
+    private decimal? ValorTotalGastoMesAnterior; 
+    private decimal? MediaPrecoLitroMesAtual;
+    private decimal? MediaPrecoLitroMesAnterior;
+    
+    [Parameter]
+    public string Data { get; set; }
+
+    public DateTime DataConvertida;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (string.IsNullOrEmpty(Data))
+        {
+            DataConvertida = DateTime.MinValue;
+        }
+        else if (DateTime.TryParse(Data, out var data))
+        {
+            DataConvertida = data;
+        }
+        else
+        {
+            DataConvertida = DateTime.MinValue;
+        }
+
+        if (DataConvertida != DateTime.MinValue)
+        {
+            resultado = await CalcularConsumoMensalAsync(DataConvertida);
+        }
+    }
+
+    private async Task<string> CalcularConsumoMensalAsync(DateTime data)
+    {
+        var dataAtual = data.ToUniversalTime();
+        var inicioMesAtual = new DateTime(dataAtual.Year, dataAtual.Month, 1).ToUniversalTime();
+        var fimMesAtual = inicioMesAtual.AddMonths(1).ToUniversalTime().AddDays(-1).ToUniversalTime();
+        var inicioMesAnterior = inicioMesAtual.AddMonths(-1).ToUniversalTime();
+        var fimMesAnterior = inicioMesAtual.AddDays(-1).ToUniversalTime();
+
+        var abastecimentoMesAtual = await _context.Abastecimento.Where(a => a.DataDoAbastecimento >= inicioMesAtual && a.DataDoAbastecimento <= fimMesAtual).ToListAsync();
+        var abastecimentoMesAnterior = await _context.Abastecimento.Where(a => a.DataDoAbastecimento >= inicioMesAnterior && a.DataDoAbastecimento <= fimMesAnterior).ToListAsync();
+
+        var departamentos = await _context.Abastecimento.Select(a => a.Departamento).Distinct().ToListAsync();
+        
+        StringBuilder sb = new();
+
+        foreach (var departamento in departamentos)
+        {
+            TotalLitrosMesAtual = abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.Litros);
+            TotalLitrosMesAnterior = abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.Litros);
+
+            TotalPercorridoMesAtual = abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.DiferencaHodometro);
+            TotalPercorridoMesAnterior = abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.DiferencaHodometro);
+
+            MediaKmMesAtual = abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.MediaKm) / abastecimentoMesAtual.Count();
+            MediaKmMesAnterior = abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.MediaKm) / abastecimentoMesAnterior.Count();
+
+            ValorTotalGastoMesAtual = abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.ValorTotalTransacao);
+            ValorTotalGastoMesAnterior = abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.ValorTotalTransacao);
+
+            MediaPrecoLitroMesAtual = abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.Preco);
+            MediaPrecoLitroMesAnterior = abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.Preco);
+
+            sb.AppendLine();
+            sb.AppendLine($"Departamento {departamento}");
+            var porcentagemTotalLitros = (TotalLitrosMesAtual / TotalLitrosMesAnterior) -1;
+            var descritivoTotalLitros = porcentagemTotalLitros < 0 ? "caiu" : "aumentou";
+            sb.AppendLine($"Quantidade de litros abastecidos {descritivoTotalLitros} em {porcentagemTotalLitros:P} de {TotalLitrosMesAnterior:N} para {TotalLitrosMesAtual:N}");
+
+            var porcentagemMediaKm = (MediaKmMesAtual / MediaKmMesAnterior) - 1;
+            var descritivoMediaKm = porcentagemMediaKm < 0 ? "caiu" : "aumentou";
+            sb.AppendLine($"Média de KM/L {descritivoMediaKm} {porcentagemMediaKm:P} de {MediaKmMesAnterior:N} para {MediaKmMesAtual:N}");
+
+            var porcentagemMediaDePreco = (MediaPrecoLitroMesAtual / MediaPrecoLitroMesAnterior) - 1;
+            var descritivoMediaDePreco = porcentagemMediaDePreco < 0 ? "caiu" : "aumentou";
+            sb.AppendLine($"Média de Preço/L {descritivoMediaDePreco} {porcentagemMediaDePreco:P} de R$ {MediaPrecoLitroMesAnterior:N} para R$ {MediaPrecoLitroMesAtual:N}");
+
+            var porcentagemTotalGasto = (ValorTotalGastoMesAtual / ValorTotalGastoMesAnterior) - 1;
+            var descritivoTotalGasto = porcentagemTotalGasto < 0 ? "caiu" : "aumentou";
+            sb.AppendLine($"Valor Total Gasto {descritivoTotalGasto} {porcentagemTotalGasto:P} de R$ {ValorTotalGastoMesAnterior:N} para R$ {ValorTotalGastoMesAtual:N} ");
+
+            var porcentagemDistanciaPercorrida = (TotalPercorridoMesAtual / TotalPercorridoMesAnterior) - 1;
+            var descritivoDistanciaPercorrida = porcentagemDistanciaPercorrida < 0 ? "caiu" : "aumentou";
+            sb.AppendLine($"Distancia percorrida {descritivoDistanciaPercorrida} {porcentagemDistanciaPercorrida:P} de {TotalPercorridoMesAnterior:N0}KM para {TotalPercorridoMesAtual:N0}KM");
+
+        }
+        
+        return sb.ToString() ?? default;
+    }
+}

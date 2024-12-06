@@ -1,9 +1,11 @@
 @using FlexPro.Data
 @using FlexPro.Models
 @using Microsoft.AspNetCore.Authorization
+
 @inject IDialogService DialogService
 @inject ApplicationDbContext _context
 @inject ISnackbar Snackbar
+@inject NavigationManager Navigation
 
 @attribute [Authorize]
 
@@ -12,9 +14,7 @@
         <MudGrid>
             <MudItem xs="12" sm="12">
                 <MudForm @ref="form" @bind-IsValid="isFormValid">
-                    <MudDateRangePicker @bind-DateRange="@_dateRange" Margin="Margin.Dense" ReadOnly="false" Clearable="true"
-                                        PlaceholderStart="Data Inicial" PlaceholderEnd="Data Final" AutoClose="true" 
-                                        Color="Color.Primary"/>
+                    <MudDatePicker Label="Selecione o mês para puxar os dados" @bind-Date="_date" OpenTo="OpenTo.Year" FixDay="1" DateFormat="MMMM/yyyy"/>
                 </MudForm>
             </MudItem>
         </MudGrid>
@@ -27,7 +27,7 @@
 @code {
     private MudForm form;
     private bool isFormValid;
-    private DateRange _dateRange { get; set; }
+    private DateTime? _date;
     
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     
@@ -46,7 +46,27 @@
     {
         try
         {
-            Snackbar.Add("Relatório emitido com sucesso!", Severity.Success);
+            if (_date != null)
+            {
+                string dataFinalFormatada = _date.Value.ToString("yyyy-MM-dd");
+                switch (tipo)
+                {
+                    case "Geral":
+                        Navigation.NavigateTo($"/Relatorios/Abastecimento/Geral/{dataFinalFormatada}");
+                        break;
+                    case "Setor":
+                        Navigation.NavigateTo($"/Relatorios/Abastecimento/Setor/{dataFinalFormatada}");
+                        break;
+                    case "Individual":
+                        Navigation.NavigateTo($"/Relatorios/Abastecimento/Individual/{dataFinalFormatada}");
+                        break;
+                }
+            }
+            else
+            {
+                Snackbar.Add("Por favor, selecione um intervalo de datas válido.", Severity.Warning);
+            }
+            
         }
         catch (Exception e)
         {
