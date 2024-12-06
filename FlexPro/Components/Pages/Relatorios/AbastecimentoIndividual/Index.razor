@@ -83,14 +83,14 @@
                 TotalPercorridoMesAtual = abastecimentoMesAtual.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.DiferencaHodometro);
                 TotalPercorridoMesAnterior = abastecimentoMesAnterior.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.DiferencaHodometro);
 
-                MediaKmMesAtual = abastecimentoMesAtual.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.MediaKm) / abastecimentoMesAtual.Count();
-                MediaKmMesAnterior = abastecimentoMesAnterior.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.MediaKm) / abastecimentoMesAnterior.Count();
+                MediaKmMesAtual = abastecimentoMesAtual.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.MediaKm) / abastecimentoMesAtual.Where(a => a.NomeDoMotorista.Equals(funcionario)).Count();
+                MediaKmMesAnterior = abastecimentoMesAnterior.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.MediaKm) / abastecimentoMesAnterior.Where(a => a.NomeDoMotorista.Equals(funcionario)).Count();
 
                 ValorTotalGastoMesAtual = abastecimentoMesAtual.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.ValorTotalTransacao);
                 ValorTotalGastoMesAnterior = abastecimentoMesAnterior.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.ValorTotalTransacao);
 
-                MediaPrecoLitroMesAtual = abastecimentoMesAtual.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.Preco) / abastecimentoMesAtual.Count();
-                MediaPrecoLitroMesAnterior = abastecimentoMesAnterior.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.Preco) / abastecimentoMesAnterior.Count();
+                MediaPrecoLitroMesAtual = abastecimentoMesAtual.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.Preco) / abastecimentoMesAtual.Where(a => a.NomeDoMotorista.Equals(funcionario)).Count();
+                MediaPrecoLitroMesAnterior = abastecimentoMesAnterior.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.Preco) / abastecimentoMesAnterior.Where(a => a.NomeDoMotorista.Equals(funcionario)).Count();
 
                 sb.AppendLine();
                 sb.AppendLine($"Funcionário {funcionario.ToUpper()}");
