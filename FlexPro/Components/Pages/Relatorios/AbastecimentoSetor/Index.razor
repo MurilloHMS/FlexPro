@@ -82,8 +82,8 @@
             ValorTotalGastoMesAtual = abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.ValorTotalTransacao);
             ValorTotalGastoMesAnterior = abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.ValorTotalTransacao);
 
-            MediaPrecoLitroMesAtual = abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.Preco);
-            MediaPrecoLitroMesAnterior = abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.Preco);
+            MediaPrecoLitroMesAtual = abastecimentoMesAtual.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.Preco) / abastecimentoMesAtual.Count();
+            MediaPrecoLitroMesAnterior = abastecimentoMesAnterior.Where(a => a.Departamento.Equals(departamento)).Sum(a => a.Preco) / abastecimentoMesAnterior.Count();
 
             sb.AppendLine();
             sb.AppendLine($"Departamento {departamento}");

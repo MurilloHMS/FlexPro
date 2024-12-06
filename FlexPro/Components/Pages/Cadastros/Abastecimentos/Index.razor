@@ -164,6 +164,7 @@
                 }
                 try
                 {
+                    // _abastecimentos = dadosAbastecimento;
                     await _Context.Abastecimento.AddRangeAsync(dadosAbastecimento);
                     await _Context.SaveChangesAsync();
                 }
