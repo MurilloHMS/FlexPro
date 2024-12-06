@@ -3,6 +3,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using System.Text
 @using Microsoft.EntityFrameworkCore
+@using SQLitePCL
 
 @inject ApplicationDbContext _context
 @inject NavigationManager Navigation
@@ -88,8 +89,8 @@
                 ValorTotalGastoMesAtual = abastecimentoMesAtual.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.ValorTotalTransacao);
                 ValorTotalGastoMesAnterior = abastecimentoMesAnterior.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.ValorTotalTransacao);
 
-                MediaPrecoLitroMesAtual = abastecimentoMesAtual.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.Preco);
-                MediaPrecoLitroMesAnterior = abastecimentoMesAnterior.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.Preco);
+                MediaPrecoLitroMesAtual = abastecimentoMesAtual.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.Preco) / abastecimentoMesAtual.Count();
+                MediaPrecoLitroMesAnterior = abastecimentoMesAnterior.Where(a => a.NomeDoMotorista.Equals(funcionario)).Sum(a => a.Preco) / abastecimentoMesAnterior.Count();
 
                 sb.AppendLine();
                 sb.AppendLine($"Funcionário {funcionario.ToUpper()}");
