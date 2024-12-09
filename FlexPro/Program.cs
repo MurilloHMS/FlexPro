@@ -48,6 +48,8 @@ builder.Services.AddTransient<IEmailService, EmailService>();
 
 builder.Services.AddLocalization();
 
+builder.Services.AddScoped<AbastecimentoService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
