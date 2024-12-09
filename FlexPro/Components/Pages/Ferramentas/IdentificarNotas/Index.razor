@@ -1,0 +1,40 @@
+@page "/Index"
+
+@inject ISnackbar Snackbar
+
+<h3>Index</h3>
+
+@code {
+
+    private async Task<IEnumerable<DadosNota>> ObterIndices()
+    {
+        var dados = new List<DadosNota>();
+        Snackbar.Add("Iniciando coleta dos dados", Severity.Info);
+        using (XLWorkbook wb = new XLWorkbook())
+        {
+            var planilha = wb.Worksheet(1);
+            var fileData = planilha.RowsUsed()
+                .Skip(1)
+                .Select(row => new DadosNota
+                {
+                    Identificador = row.Cell(1).TryGetValue<string>(out var identificador) ? identificador : null,
+                    NumeroNFe = row.Cell(2).TryGetValue<string>(out var numeroNFe) ? numeroNFe : null
+                }).ToList();
+
+            lock (dados)
+            {
+                dados.AddRange(fileData);
+            }
+        }
+
+        return dados;
+
+    }
+
+    private class DadosNota
+    {
+        public string Identificador { get; set; }
+        public string NumeroNFe { get; set; }
+        
+    }
+}
