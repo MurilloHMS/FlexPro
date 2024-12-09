@@ -87,7 +87,7 @@
 
             sb.AppendLine();
             sb.AppendLine($"Departamento {departamento}");
-            var porcentagemTotalLitros = (TotalLitrosMesAtual / TotalLitrosMesAnterior) -1;
+            var porcentagemTotalLitros = (TotalLitrosMesAtual / TotalLitrosMesAnterior) - 1;
             var descritivoTotalLitros = porcentagemTotalLitros < 0 ? "caiu" : "aumentou";
             sb.AppendLine($"Quantidade de litros abastecidos {descritivoTotalLitros} em {porcentagemTotalLitros:P} de {TotalLitrosMesAnterior:N} para {TotalLitrosMesAtual:N}");
 
@@ -101,14 +101,14 @@
 
             var porcentagemTotalGasto = (ValorTotalGastoMesAtual / ValorTotalGastoMesAnterior) - 1;
             var descritivoTotalGasto = porcentagemTotalGasto < 0 ? "caiu" : "aumentou";
-            sb.AppendLine($"Valor Total Gasto {descritivoTotalGasto} {porcentagemTotalGasto:P} de {ValorTotalGastoMesAnterior:C} para {ValorTotalGastoMesAtual:C} ");
+            sb.AppendLine($"Valor Total Gasto {descritivoTotalGasto} {porcentagemTotalGasto:P} de {ValorTotalGastoMesAnterior:C} para {ValorTotalGastoMesAtual:C}");
 
             var porcentagemDistanciaPercorrida = (TotalPercorridoMesAtual / TotalPercorridoMesAnterior) - 1;
             var descritivoDistanciaPercorrida = porcentagemDistanciaPercorrida < 0 ? "caiu" : "aumentou";
             sb.AppendLine($"Distancia percorrida {descritivoDistanciaPercorrida} {porcentagemDistanciaPercorrida:P} de {TotalPercorridoMesAnterior:N0}KM para {TotalPercorridoMesAtual:N0}KM");
 
         }
-        
+
         return sb.ToString() ?? default;
     }
 }
