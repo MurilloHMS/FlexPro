@@ -1,5 +1,6 @@
 using FlexPro.Data;
 using System.Text;
+using FlexPro.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using FlexPro.Models;
 
@@ -115,7 +116,7 @@ public class AbastecimentoService
             sb.AppendLine($"Distancia percorrida: {Calculos.CalcularDesempenho(totalPercorridoMesAtual, totalPercorridoMesAnterior, "N0")}");
             sb.AppendLine();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             
         }
