@@ -14,6 +14,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add MudBlazor services
 builder.Services.AddMudServices();
 
+// Add Blazor Bootstrap services 
+builder.Services.AddBlazorBootstrap();
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
