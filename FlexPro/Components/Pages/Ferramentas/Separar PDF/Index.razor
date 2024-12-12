@@ -76,7 +76,7 @@
 <script>
     function downloadFileFromStream(fileName, fileBase64) {
         const link = document.createElement('a');
-        link.href = 'data:application/octet-stream;base64,' + fileBase64;
+        link.href = 'data:application/zip;base64,' + fileBase64;
         link.download = fileName;
         document.body.appendChild(link);
         link.click();
@@ -188,24 +188,15 @@
                 zipFilePath = Path.Combine(userDownloadsPath, zipFileName);
                 fileIndex++;
             }
+
+            using var memoryStream = new MemoryStream();
+            System.IO.Compression.ZipFile.CreateFromDirectory(outputFolder, memoryStream);
+            memoryStream.Seek(0, SeekOrigin.Begin);
             
-            System.IO.Compression.ZipFile.CreateFromDirectory(outputFolder, zipFilePath);
-            
+            var base64File = Convert.ToBase64String(memoryStream.ToArray());
+            await JSRuntime.InvokeVoidAsync("downloadFileFromStream", "PDF_Separados.zip", base64File);
+
             Directory.Delete(outputFolder, true);
-            File.Delete(inputPdfPath);
-
-            var fileBytes = File.ReadAllBytes(zipFilePath);
-
-            await DownloadFile(fileBytes, Path.GetFileName(zipFilePath));
-
         }
-    }
-    
-    private async Task DownloadFile(byte[] fileBytes, string fileName)
-    {
-        var fileStream = new BlazorDownloadFileStream(fileBytes);
-        var base64File = Convert.ToBase64String(fileBytes);
-
-        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, base64File);
     }
 }
