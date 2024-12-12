@@ -1,134 +1,238 @@
 @page "/dash/veiculos"
-@using FlexPro.Data
-@using System.Diagnostics
-@using Microsoft.AspNetCore.Mvc;
-@using Microsoft.EntityFrameworkCore;
-
 @inject ApplicationDbContext _context
+@inject IJSRuntime JS
 
-<MudText Typo="Typo.h2" Align="Align.Center">Veiculos/Revisões</MudText>
+<MudText Typo="Typo.h2" Align="Align.Center">Dados Veículos/Revisões</MudText>
 <br><br>
 
 <MudGrid>
     <MudItem xs="12" sm="3">
         <MudCard>
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6" Align="Align.Center">Quantidade de Funcionários</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
             <MudCardContent>
-                <MudText Align="Align.Center">@totalFuncionarios</MudText>
+                <MudText Typo="Typo.h6" Align="Align.Center">Quantidade de Funcionários</MudText>
+                <MudText Typo="Typo.h4" Align="Align.Center">@TotalFuncionarios</MudText>
             </MudCardContent>
         </MudCard>
     </MudItem>
     <MudItem xs="12" sm="3">
         <MudCard>
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6" Align="Align.Center">Quantidade de Veiculos</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
             <MudCardContent>
-                <MudText Align="Align.Center">@totalVeiculos</MudText>
+                <MudText Typo="Typo.h6" Align="Align.Center">Quantidade de Veículos</MudText>
+                <MudText Typo="Typo.h4" Align="Align.Center">@TotalVeiculos</MudText>
             </MudCardContent>
         </MudCard>
     </MudItem>
     <MudItem xs="12" sm="3">
         <MudCard>
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6" Align="Align.Center">Quantidade de Revisões</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
             <MudCardContent>
-                <MudText Align="Align.Center">@totalRevisoes</MudText>
+                <MudText Typo="Typo.h6" Align="Align.Center">Quantidade de Revisões</MudText>
+                <MudText Typo="Typo.h4" Align="Align.Center">@TotalRevisoes</MudText>
             </MudCardContent>
         </MudCard>
     </MudItem>
     <MudItem xs="12" sm="3">
         <MudCard>
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6" Align="Align.Center">Quantidade de Fornecedores</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
             <MudCardContent>
-                <MudText Align="Align.Center">@totalFornecedores</MudText>
+                <MudText Typo="Typo.h6" Align="Align.Center">Quantidade de Fornecedores</MudText>
+                <MudText Typo="Typo.h4" Align="Align.Center">@TotalFornecedores</MudText>
             </MudCardContent>
         </MudCard>
     </MudItem>
 </MudGrid>
-<br><br>
+
+<br>
 <MudGrid>
-    <MudItem xs="12" sm="7">
+    <MudItem xs="12" sm="6">
         <MudPaper Class="pa-4">
-            <MudChart ChartType="MudBlazor.ChartType.Bar" Width="100%" Height="250px" InputData="@DataVeiculosPorMarca" InputLabels="@LabelsVeiculosPorMarca" LegendPosition="MudBlazor.Position.Bottom"/>
+            <MudChart ChartType="MudBlazor.ChartType.Line" InputLabels="@RevisoesPorPeriodoLabels" InputData="@RevisoesPorPeriodoCounts" LegendPosition="MudBlazor.Position.Bottom" Width="100%" Height="250px" />
         </MudPaper>
     </MudItem>
-    <MudItem xs="12" sm="5">
+    <MudItem xs="12" sm="6">
         <MudPaper Class="pa-4">
-            <MudChart ChartType="MudBlazor.ChartType.Pie" Width="100%" Height="250px" InputData="@DataResumoRevisoesPorFornecedores" InputLabels="@LabelsResumoRevisoesPorFornecedores" LegendPosition="MudBlazor.Position.Right">
-                
-            </MudChart>
+            <MudChart ChartType="MudBlazor.ChartType.Pie" InputLabels="@RevisoesPorFornecedorLabels" InputData="@RevisoesPorFornecedorCounts" LegendPosition="MudBlazor.Position.Right" Width="100%" Height="250px" />
         </MudPaper>
     </MudItem>
 </MudGrid>
+
+<MudGrid>
+    <MudItem xs="12" sm="6">
+        <MudPaper Class="pa-4">
+            <MudChart ChartType="MudBlazor.ChartType.Pie" InputLabels="@VeiculosPorMarcaLabels" InputData="@VeiculosPorMarcaCounts" LegendPosition="MudBlazor.Position.Bottom" Width="100%" Height="250px" />
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudPaper>
+            <MudList T="string">
+                <MudListSubheader>Top 5 Veículos com Mais Revisões</MudListSubheader>
+                @foreach (var veiculo in TopVeiculos)
+                {
+                    <MudListItem>
+                        <MudText>@veiculo.Name (@veiculo.Plate) - @veiculo.RevisoesCount Revisões</MudText>
+                    </MudListItem>
+                }
+            </MudList>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<br>
+<MudPaper>
+    <MudList T="string">
+        <MudListSubheader>Resumo de Revisões por Fornecedor</MudListSubheader>
+        @foreach (var fornecedor in ResumoRevisoesPorFornecedor)
+        {
+            <MudListItem>
+                <MudText>@fornecedor.Nome - @fornecedor.RevisoesCount Revisões</MudText>
+            </MudListItem>
+        }
+    </MudList>
+</MudPaper>
+<MudGrid>
+    <MudItem xs="12" sm="6">
+        <MudPaper Class="pa-4">
+            <MudChart ChartType="MudBlazor.ChartType.Bar" InputLabels="@AverageRevisionsLabels" InputData="@AverageRevisionsCounts" LegendPosition="MudBlazor.Position.Bottom" Width="100%" Height="250px" />
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudPaper Class="pa-4">
+            <MudChart ChartType="MudBlazor.ChartType.Pie" InputLabels="@CumulativeRevisionsLabels" InputData="@CumulativeRevisionsCounts" LegendPosition="MudBlazor.Position.Bottom" Width="100%" Height="250px" />
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudPaper Class="pa-4">
+            <MudChart ChartType="MudBlazor.ChartType.Pie" InputLabels="@VehicleAvailabilityLabels" InputData="@VehicleAvailabilityCounts" LegendPosition="MudBlazor.Position.Right" Width="100%" Height="250px" />
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudPaper Class="pa-4">
+            <MudChart ChartType="MudBlazor.ChartType.Pie" InputLabels="@RevisionsByServiceLabels" InputData="@RevisionsByServiceCounts" LegendPosition="MudBlazor.Position.Bottom" Width="100%" Height="250px" />
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
 
 @code {
-    private int totalFuncionarios = default!;
-    private int totalVeiculos = default!;
-    private int totalRevisoes = default!;
-    private int totalFornecedores = default!;
+    private int TotalFuncionarios;
+    private int TotalVeiculos;
+    private int TotalRevisoes;
+    private int TotalFornecedores;
 
-    private double[] DataResumoRevisoesPorFornecedores;
-    private string[] LabelsResumoRevisoesPorFornecedores;
-    private string[] LabelsVeiculosPorMarca;
-    private double[] DataVeiculosPorMarca;
+    private List<TopVeiculo> TopVeiculos = new();
+    private List<RevisoesFornecedor> ResumoRevisoesPorFornecedor = new();
+
+    private string[] RevisoesPorPeriodoLabels;
+    private double[] RevisoesPorPeriodoCounts;
+    private string[] RevisoesPorFornecedorLabels;
+    private double[] RevisoesPorFornecedorCounts;
+    private string[] VeiculosPorMarcaLabels;
+    private double[] VeiculosPorMarcaCounts;
     
-    protected override void OnInitialized()
+    private string[] AverageRevisionsLabels;
+    private double[] AverageRevisionsCounts;
+
+    private string[] CumulativeRevisionsLabels;
+    private double[] CumulativeRevisionsCounts;
+
+    private string[] VehicleAvailabilityLabels;
+    private double[] VehicleAvailabilityCounts;
+
+    private string[] RevisionsByServiceLabels;
+    private double[] RevisionsByServiceCounts;
+
+
+    protected override async Task OnInitializedAsync()
     {
-        totalFuncionarios = _context.Funcionarios.Count();
-        totalVeiculos = _context.Veiculo.Count();
-        totalFornecedores = _context.Entidade.Count();
-        totalRevisoes = _context.Revisao.Count();
-        
-        var topVeiculos = _context.Veiculo
+        ColetaDadosParaDashboard();
+        await Task.CompletedTask;
+    }
+
+    private void ColetaDadosParaDashboard()
+    {
+        TotalFuncionarios = _context.Funcionarios.Count();
+        TotalVeiculos = _context.Veiculo.Count();
+        TotalRevisoes = _context.Revisao.Count();
+        TotalFornecedores = _context.Entidade.Count();
+
+        TopVeiculos = _context.Veiculo
             .OrderByDescending(v => _context.Revisao.Count(r => r.VeiculoId == v.Id))
             .Take(5)
-            .Select(v => new{
-                v.Nome,
-                v.Placa,
+            .Select(v => new TopVeiculo
+            {
+                Name = v.Nome,
+                Plate = v.Placa,
                 RevisoesCount = _context.Revisao.Count(r => r.VeiculoId == v.Id)
             }).ToList();
-            
-        var resumoRevisoesPorFornecedor = _context.Entidade
-            .Select(f => new RevisoesPorFornecedor
+
+        ResumoRevisoesPorFornecedor = _context.Entidade
+            .Select(f => new RevisoesFornecedor
             {
                 Nome = f.Nome,
                 RevisoesCount = _context.Revisao.Count(r => r.LocalId == f.ID)
             }).ToList();
 
-        DataResumoRevisoesPorFornecedores = resumoRevisoesPorFornecedor.Select(r => (double)r.RevisoesCount).ToArray();
-        LabelsResumoRevisoesPorFornecedores = resumoRevisoesPorFornecedor.Select(r => r.Nome).ToArray();
+        var revisoesPorPeriodo = _context.Revisao
+            .Where(r => r.Data != null)
+            .GroupBy(r => new { r.Data.Value.Year, r.Data.Value.Month })
+            .Select(g => new
+            {
+                Periodo = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("MMMM-yyyy"),
+                Count = g.Count()
+            }).ToList();
+
+
+        RevisoesPorPeriodoLabels = revisoesPorPeriodo.Select(r => (string)r.Periodo).ToArray();
+        RevisoesPorPeriodoCounts = revisoesPorPeriodo.Select(r => (double)r.Count).ToArray();
+
+        var revisoesPorFornecedor = ResumoRevisoesPorFornecedor.ToList();
+        RevisoesPorFornecedorLabels = revisoesPorFornecedor.Select(r => r.Nome).ToArray();
+        RevisoesPorFornecedorCounts = revisoesPorFornecedor.Select(r => (double)r.RevisoesCount).ToArray();
 
         var veiculosPorMarca = _context.Veiculo
             .GroupBy(v => v.Placa)
-            .Select(g => new { Brand = g.Key, Count = g.Count() })
+            .Select(g => new { Placa = g.Key, Contagem = g.Count() })
             .ToList();
-        LabelsVeiculosPorMarca = veiculosPorMarca.Select(r => r.Brand).ToArray();
-        DataVeiculosPorMarca = veiculosPorMarca.Select(r => (double)r.Count).ToArray();
+
+        VeiculosPorMarcaLabels = veiculosPorMarca.Select(v => v.Placa).ToArray();
+        VeiculosPorMarcaCounts = veiculosPorMarca.Select(v => (double)v.Contagem).ToArray();
+
+        JS.InvokeVoidAsync("updateCharts", RevisoesPorPeriodoLabels, RevisoesPorPeriodoCounts, RevisoesPorFornecedorLabels, RevisoesPorFornecedorCounts, VeiculosPorMarcaLabels, VeiculosPorMarcaCounts);
+        
+        
+        var avgRevisions = _context.Veiculo
+            .GroupBy(v => v.Nome)
+            .Select(g => new
+            {
+                VehicleName = g.Key,
+                Average = _context.Revisao.Where(r => r.VeiculoId == g.First().Id).Count() / (double)g.Count()
+            })
+            .ToList();
+        AverageRevisionsLabels = avgRevisions.Select(x => x.VehicleName).ToArray();
+        AverageRevisionsCounts = avgRevisions.Select(x => x.Average).ToArray();
+        
+        // Revisions by Service Type
+        var revisionsByService = _context.Revisao
+            .GroupBy(r => r.Tipo)
+            .Select(g => new
+            {
+                ServiceType = g.Key,
+                Count = g.Count()
+            })
+            .ToList();
+        RevisionsByServiceLabels = revisionsByService.Select(x => (string)x.ServiceType).ToArray();
+        RevisionsByServiceCounts = revisionsByService.Select(x => (double)x.Count).ToArray();
     }
-    
-    private class RevisoesPorFornecedor
+
+    public class TopVeiculo
+    {
+        public string Name { get; set; }
+        public string Plate { get; set; }
+        public int RevisoesCount { get; set; }
+    }
+
+    public class RevisoesFornecedor
     {
         public string Nome { get; set; }
         public int RevisoesCount { get; set; }
     }
-
-    private class VeiculosPorMarca
-    {
-        public string Brand { get; set; }
-        public int Count { get; set; }
-    }
 }
+
