@@ -1,34 +1,234 @@
-@page "/Index"
+@page "/RenomearNotas"
 
 @inject ISnackbar Snackbar
+@inject  IJSRuntime JSRuntime
 
-<h3>Index</h3>
+<MudText Typo="Typo.h4" Align="Align.Center">Renomear Notas Via Planilha</MudText>
+
+<MudStack>
+    <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                   Accept=".xlsx,.pdf"
+                   MaximumFileCount="1000"
+                   @ref="@_fileUpload"
+                   OnFilesChanged="OnInputFileChanged"
+                   AppendMultipleFiles
+                   Hidden="false"
+                   InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
+                   InputStyle="opacity:0"
+                   tabindex="-1"
+                   @ondrop="@ClearDragClas"
+                   @ondragenter="@SetDragClass"
+                   @ondragleave="@ClearDragClas"
+                   @ondragend="@ClearDragClas">
+        <ActivatorContent>
+            <MudPaper Height="300px"
+                      Outlined="true"
+                      Class="@_dragClass">
+                <MudText Typo="Typo.h6">
+                    arraste ou solte os arquivos aqui ou clique para selecionar
+                </MudText>
+                @if (_fileNames != null && _fileNames.Any())
+                {
+                    @for (int i = 0; i < 20 && i < _fileNames.Count; i++)
+                    {
+                        <MudChip T="string"
+                                 Color="Color.Dark"
+                                 Text="@_fileNames[i].Name"
+                                 tabindex="-1"/>
+                    }
+                }
+            </MudPaper>
+        </ActivatorContent>
+    </MudFileUpload>
+    <MudToolBar Gutters="@false"
+                Class="relative d-flex justify-end gap-4">
+        <MudButton Color="Color.Primary"
+                   OnClick="@OpenFilePickerAsync"
+                   Variant="Variant.Filled">
+            Selecionar Arquivos
+        </MudButton>
+        <MudButton Color="Color.Primary"
+                   Disabled="@(!_fileNames.Any())"
+                   OnClick="@Upload"
+                   Variant="Variant.Filled">
+            Renomear Notas Fiscais
+        </MudButton>
+        <MudButton Color="Color.Error"
+                   Disabled="@(!_fileNames.Any())"
+                   OnClick="@ClearAsync"
+                   Variant="Variant.Filled">
+            Apagar Arquivos
+        </MudButton>
+    </MudToolBar>
+</MudStack>
+
+<script>
+    function downloadFileFromStream(fileName, fileBase64){
+        const link = document.createElement('a');
+        link.href = 'data:application/actet-stream;base64' + fileBase64;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
 
 @code {
+    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+    private string _dragClass = DefaultDragClass;
+    private readonly List<IBrowserFile> _fileNames = new();
+    private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
 
-    private async Task<IEnumerable<DadosNota>> ObterIndices()
+    private List<DadosNota> dados = new();
+
+    private void SetDragClass() => _dragClass = $"{DefaultDragClass} mud-border-primary";
+    private void ClearDragClas() => _dragClass = DefaultDragClass;
+
+    private async Task ClearAsync()
     {
-        var dados = new List<DadosNota>();
-        Snackbar.Add("Iniciando coleta dos dados", Severity.Info);
-        using (XLWorkbook wb = new XLWorkbook())
-        {
-            var planilha = wb.Worksheet(1);
-            var fileData = planilha.RowsUsed()
-                .Skip(1)
-                .Select(row => new DadosNota
-                {
-                    Identificador = row.Cell(1).TryGetValue<string>(out var identificador) ? identificador : null,
-                    NumeroNFe = row.Cell(2).TryGetValue<string>(out var numeroNFe) ? numeroNFe : null
-                }).ToList();
+        await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
+        _fileNames.Clear();
+        ClearDragClas();
+    }
 
-            lock (dados)
+    private Task OpenFilePickerAsync() => _fileUpload?.OpenFilePickerAsync() ?? Task.CompletedTask;
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+       ClearDragClas();
+       var files = e.GetMultipleFiles(1000);
+       foreach (var file in files)  
+       {
+           _fileNames.Add(file);
+       }
+    }
+
+    private async Task Upload()
+    {
+        Snackbar.Add("Iniciando processamento dos arquivos...");
+
+        foreach (var file in _fileNames)
+        {
+            if (Path.GetExtension(file.Name).Contains("xlsx"))
             {
-                dados.AddRange(fileData);
+                dados = await ObterIndices(file);
+            }
+        }
+        foreach (var file in _fileNames)
+        {
+            if (Path.GetExtension(file.Name).Contains("pdf"))
+            {
+                var tempFilePath = Path.Combine(Path.GetTempPath(), file.Name);
+                await using var stream = file.OpenReadStream();
+                await using var fileStream = new FileStream(tempFilePath, FileMode.Create);
+                await stream.CopyToAsync(fileStream);
+                AlterarNomesNotas(tempFilePath);
             }
         }
 
-        return dados;
+        await Download();
+    }
 
+    private async Task Download()
+    {
+        var outputFolder = (Path.Combine(Path.GetTempPath(), "NotasRenomeadas"));
+        if (!Directory.Exists(outputFolder))
+        {
+            return;
+        }
+
+        string zipFilename = "PDF_Renomeados.zip";
+        string userDownloadsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Downloads");
+        string zipFilePath = Path.Combine(userDownloadsPath, zipFilename);
+
+        int fileIndex = 1;
+        while (File.Exists(zipFilePath))
+        {
+            zipFilename = $"PDF_Renomeados({fileIndex}).zip";
+            zipFilePath = Path.Combine(userDownloadsPath, zipFilename);
+            fileIndex++;
+        }
+        System.IO.Compression.ZipFile.CreateFromDirectory(outputFolder, zipFilePath);
+        
+        Directory.Delete(outputFolder, true);
+
+        var fileBytes = File.ReadAllBytes(zipFilePath);
+
+        await DownloadFile(fileBytes, Path.GetFileName(zipFilePath));
+    }
+   
+    private async Task AlterarNomesNotas(string filePath)
+    {
+        if (dados == null || !dados.Any()) return;
+
+        var outputFolder = Path.Combine(Path.GetTempPath(), "NotasRenomeadas");
+        if (!Directory.Exists(outputFolder))
+        {
+            Directory.CreateDirectory(outputFolder);
+        }
+
+        var nomeDaNota = Path.GetFileNameWithoutExtension(filePath);
+
+        foreach (var nota in dados)
+        {
+            if (nomeDaNota.Equals(nota.Identificador, StringComparison.OrdinalIgnoreCase))
+            {
+                var novoCaminho = Path.Combine(outputFolder, $"NFe_{nota.NumeroNFe}.pdf");
+
+                // Copiar o arquivo com o novo nome
+                File.Copy(filePath, novoCaminho, overwrite: true);
+                Snackbar.Add($"Nota renomeada: {novoCaminho}", Severity.Success);
+                return; // Sai do loop após encontrar a correspondência
+            }
+        }
+
+        // Snackbar.Add($"Nenhuma correspondência encontrada para: {filePath}", Severity.Warning);
+    }
+
+    
+    private async Task<List<DadosNota>> ObterIndices(IBrowserFile file)
+    {
+        Snackbar.Add("Iniciando coleta dos dados", Severity.Info);
+        try
+        {
+            using (var stream = new MemoryStream())
+            {
+                await file.OpenReadStream().CopyToAsync(stream);
+                stream.Position = 0;
+                
+                using (XLWorkbook wb = new (stream))
+                {
+                    var planilha = wb.Worksheet(1);
+                    var fileData = planilha.RowsUsed()
+                        .Skip(1)
+                        .Select(row => new DadosNota
+                        {
+                            Identificador = row.Cell(1).TryGetValue<string>(out var identificador) ? identificador : null,
+                            NumeroNFe = row.Cell(2).TryGetValue<string>(out var numeroNFe) ? numeroNFe : null
+                        }).ToList();
+
+                    lock (dados)
+                    {
+                        dados.AddRange(fileData);
+                    }
+                }
+            }
+
+            return dados;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+    
+    private async Task DownloadFile(byte[] fileBytes, string fileName)
+    {
+        var fileStream = new BlazorDownloadFileStream(fileBytes);
+        var base64File = Convert.ToBase64String(fileBytes);
+
+        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, base64File);
     }
 
     private class DadosNota
