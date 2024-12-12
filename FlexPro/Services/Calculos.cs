@@ -15,13 +15,13 @@ public class Calculos
         switch (tipo.ToString())
         {
             case "C":
-                desempenho = $"{descricao} em {porcentagem:P} de {valorAnterior:C} para {valorAtual:C}";
+                desempenho = $"{descricao} em {porcentagem:P2} de {valorAnterior:C} para {valorAtual:C}";
                 break;
             case "N0":
-                desempenho = $"{descricao} em {porcentagem:P} de {valorAnterior:N0} para {valorAtual:N0}";
+                desempenho = $"{descricao} em {porcentagem:P2} de {valorAnterior:N0} para {valorAtual:N0}";
                 break;
             case "N":
-                desempenho = $"{descricao} em {porcentagem:P} de {valorAnterior:N} para {valorAtual:N}";
+                desempenho = $"{descricao} em {porcentagem:P2} de {valorAnterior:N} para {valorAtual:N}";
                 break;
         }
         return desempenho;
