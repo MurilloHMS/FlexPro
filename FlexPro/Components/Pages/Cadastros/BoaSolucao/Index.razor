@@ -1,9 +1,63 @@
 @page "/BoaSolucao"
-@using Microsoft.AspNetCore.Authorization
-
 
 @attribute [Authorize]
 
+<MudText Typo="Typo.h4" Align="Align.Center">Pedidos Boa Solução</MudText>
+
+<MudSelect @bind-Value="stringValue" Label="Selecione uma receita" HelperText="Receita do produto para emissão da nota fiscal" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary">
+    <MudSelectItem Value="@("Pizza")" Disabled="true">Pizza (Disabled)</MudSelectItem>
+    <MudSelectItem Value="@("Burger")">Burger</MudSelectItem>
+    <MudSelectItem Value="@("Hotdog")">Hot Dog</MudSelectItem>
+</MudSelect>
+<MudDataGrid Items="@_produtos" T="Produto" Hover="true" Dense="true">
+    <Columns>
+        <PropertyColumn Property="x => x.CodigoSistema" Title="Código do sistema" CellStyleFunc="@_cellStyleFunc"/>
+        <PropertyColumn Property="x => x.Descricao" Title="Descrição" CellStyleFunc="@_cellStyleFunc"/>
+        <PropertyColumn Property="x => x.QuantidadeFormula" Title="Quantidade Fórmula" Hidden="true" CellStyleFunc="@_cellStyleFunc"/>
+        <PropertyColumn Property="x => x.QuantidadeProducao" Title="Quantidade Produção" CellStyleFunc="@_cellStyleFunc"/>
+        <PropertyColumn Property="x => x.MateriaPrima" Title="Tipo Estoque" CellStyleFunc="@_cellStyleFunc"/>
+    </Columns>
+</MudDataGrid>
 @code {
+    private IEnumerable<Produto> _produtos = new List<Produto>();
+    private string stringValue { get; set; }
     
+    protected override async Task OnInitializedAsync()
+    {
+        _produtos = new List<Produto>()
+        {
+            new Produto
+            {
+                Id = 1,
+                CodigoSistema = "3074",
+                Descricao = "TETRAPIROFOSAFATO DE SODIO BOA SOLUÇÃO",
+                QuantidadeFormula = 0.01500m,
+                MateriaPrima = "Boa Solução"
+            },
+            new Produto
+            {
+                Id = 2,
+                CodigoSistema = "2936",
+                Descricao = "MÃO DE OBRA PRODUÇÃO",
+                QuantidadeFormula = 1m,
+                MateriaPrima = "Mão de Obra"
+            }
+        };
+    }
+    
+    private Func<Produto, string> _cellStyleFunc => x =>
+    {
+        string style = "";
+
+        if (x.MateriaPrima == "Proauto")
+            style += "background-color:#FFFFFF";
+
+        else if (x.MateriaPrima == "Boa Solução")
+            style += "background-color:#ffff00";
+
+        else if (x.MateriaPrima == "Mão de Obra")
+            style += "background-color:#e8e8e8";
+
+        return style;
+    };
 }
