@@ -65,7 +65,7 @@
 <script>
     function downloadFileFromStream(fileName, fileBase64) {
         const link = document.createElement('a');
-        link.href = 'data:application/zip;base64,' + fileBase64;  // Defina o tipo MIME para "application/zip"
+        link.href = 'data:application/zip;base64,' + fileBase64; 
         link.download = fileName;
         document.body.appendChild(link);
         link.click();
