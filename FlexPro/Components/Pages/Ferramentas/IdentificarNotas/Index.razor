@@ -96,18 +96,26 @@
 
     private void OnInputFileChanged(InputFileChangeEventArgs e)
     {
-       ClearDragClas();
-       var files = e.GetMultipleFiles(1000);
-       foreach (var file in files)  
-       {
-           _fileNames.Add(file);
-       }
+        ClearDragClas();
+        var files = e.GetMultipleFiles(1000);
+        Snackbar.Add($"Obtendo Arquivos");
+        foreach (var file in files)
+        {
+            var extension = Path.GetExtension(file.Name)?.ToLower();
+            if (extension is ".xls" or ".pdf" or ".xlsx")
+            {
+                _fileNames.Add(file);
+            }
+            else
+            {
+                Snackbar.Add($"Arquivo inválido ignorado: {file.Name}", Severity.Warning);
+            }
+        }
     }
+
 
     private async Task Upload()
     {
-        Snackbar.Add("Iniciando processamento dos arquivos...");
-
         foreach (var file in _fileNames)
         {
             if (Path.GetExtension(file.Name).Contains("xlsx"))
@@ -132,21 +140,24 @@
 
     private async Task Download()
     {
+        Snackbar.Add($"iniciando Download dos Arquivos...");
         var outputFolder = Path.Combine(Path.GetTempPath(), "NotasRenomeadas");
-        if (!Directory.Exists(outputFolder))
-        {
-            return;
-        }
+        if (!Directory.Exists(outputFolder)) return;
 
-        using var memoryStream = new MemoryStream();
-        System.IO.Compression.ZipFile.CreateFromDirectory(outputFolder, memoryStream);
-        memoryStream.Seek(0, SeekOrigin.Begin);
+        var tempZipPath = Path.Combine(Path.GetTempPath(), "PDF_Renomeados.zip");
+        if (File.Exists(tempZipPath)) File.Delete(tempZipPath);
 
-        var base64File = Convert.ToBase64String(memoryStream.ToArray());
+        System.IO.Compression.ZipFile.CreateFromDirectory(outputFolder, tempZipPath);
+
+        var bytes = await File.ReadAllBytesAsync(tempZipPath);
+        var base64File = Convert.ToBase64String(bytes);
+
         await JSRuntime.InvokeVoidAsync("downloadFileFromStream", "PDF_Renomeados.zip", base64File);
 
         Directory.Delete(outputFolder, true);
+        File.Delete(tempZipPath);
     }
+
    
     private async Task AlterarNomesNotas(string filePath)
     {
@@ -165,11 +176,10 @@
             if (nomeDaNota.Equals(nota.Identificador, StringComparison.OrdinalIgnoreCase))
             {
                 var novoCaminho = Path.Combine(outputFolder, $"NFe_{nota.NumeroNFe}.pdf");
-
-                // Copiar o arquivo com o novo nome
+                
                 File.Copy(filePath, novoCaminho, overwrite: true);
                 Snackbar.Add($"Nota renomeada: {novoCaminho}", Severity.Success);
-                return; // Sai do loop após encontrar a correspondência
+                return; 
             }
         }
 
