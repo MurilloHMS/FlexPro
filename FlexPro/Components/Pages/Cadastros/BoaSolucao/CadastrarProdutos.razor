@@ -1,0 +1,105 @@
+@inject IDialogService DialogService
+@inject ApplicationDbContext _context
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="12">
+                <MudForm @ref=form @bind-IsValid="_isFormValid" Spacing="5">
+                    <MudTextField Label="Código Sistema" @bind-Value="_produto.CodigoSistema" Required/>
+                    <MudTextField Label="Descrição" @bind-Value="_produto.Descricao" Required/>
+                    <MudTextField Label="Quantidade Fórmula" @bind-Value="_produto.QuantidadeFormula" T="decimal" Required/>
+                    <MudSelect Label="Estoque" @bind-Value="_produto.MateriaPrima" Required>
+                        @foreach (var item in _materiaPrima)
+                        {
+                            <MudSelectItem Value="item">@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudSelect Label="Tipo de Produto" @bind-Value="_produto.Tipo">
+                        @foreach (var item in _tipoDeProduto)
+                        {
+                            <MudSelectItem Value="item">@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudSelect Label="Receita" @bind-Value="_produto.IdReceita" Required>
+                        @foreach(var item in _receitas)
+                        {
+                            <MudSelectItem Value="item.Id">@item.Nome</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudForm>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton OnClick="SalvarProduto" Color="Color.Primary" Disabled="!_isFormValid">Salvar</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    private Produto _produto = new Produto();
+    private List<Receita> _receitas = new List<Receita>();
+    private MudForm form;
+    private bool _isFormValid;
+    private string[] _materiaPrima =
+    {
+        "Boa Solução", "Mão de Obra", "Proauto"
+    };
+
+    private string[] _tipoDeProduto =
+    {
+        "Mão de Obra", "Embalagem", "Caixa", "Produto"
+    };
+
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    
+    [Parameter]
+    public Produto Produto { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Produto is not null)
+            _produto = Produto;
+        try
+        {
+           _receitas = await _context.Receita.ToListAsync();
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add("Ocorreu um erro ao coletar as receitas", Severity.Error);
+        }
+    }
+    
+    private void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void SalvarProduto()
+    {
+        try
+        {
+            if (Produto is not null)
+            {
+                _context.Produto.Update(_produto);
+                _context.SaveChanges();
+                Snackbar.Add("Produto Atualizado com Sucesso!", Severity.Success);
+            }
+            else
+            {
+                _context.Produto.Add(_produto);
+                _context.SaveChanges();
+                Snackbar.Add("Produto Cadastrado com Sucesso!", Severity.Success);
+            }
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Ocorreu um erro ao cadastrar o produto: {e.Message}", Severity.Error);
+        }
+        MudDialog?.Close(DialogResult.Ok(_produto));
+    }
+
+}

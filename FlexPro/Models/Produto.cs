@@ -10,6 +10,7 @@ namespace FlexPro.Models
         public decimal QuantidadeFormula { get; set; }
         public decimal QuantidadeProducao { get; set; }
         public string MateriaPrima { get; set; }
+        public string Tipo { get; set; }
         public int IdReceita { get; set; }
         public virtual Receita Receita { get; set; }
     }
