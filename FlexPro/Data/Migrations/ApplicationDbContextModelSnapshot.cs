@@ -238,6 +238,10 @@ namespace FlexPro.Migrations
                     b.Property<decimal>("QuantidadeProducao")
                         .HasColumnType("numeric");
 
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.HasIndex("IdReceita");

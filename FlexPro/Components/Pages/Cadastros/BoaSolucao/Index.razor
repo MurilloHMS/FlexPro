@@ -1,9 +1,177 @@
 @page "/BoaSolucao"
-@using Microsoft.AspNetCore.Authorization
+@using Humanizer
 
+@inject IDialogService DialogService
+@inject ApplicationDbContext _context
+@inject ISnackbar Snackbar
 
 @attribute [Authorize]
 
+<MudText Typo="Typo.h4" Align="Align.Center">Pedidos Boa Solução</MudText>
+
+<MudSelect @bind-Value="_receita.Id" Label="Selecione uma receita" HelperText="Receita do produto para emissão da nota fiscal" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary">
+    @foreach (var item in _receitas)
+    {
+        <MudSelectItem Value="@item.Id">@item.Nome</MudSelectItem>
+    }
+</MudSelect>
+<MudPaper Elevation="25">
+    <MudToolBar>
+        <MudMenu FullWidth="false" ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Variant="Variant.Filled" Dense="true">
+            <ActivatorContent>
+                <MudFab StartIcon="@Icons.Material.Filled.Receipt" Color="Color.Primary" Size="Size.Small" Label="Receitas"/>
+            </ActivatorContent>
+            <ChildContent>
+                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
+                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.Edit">Editar</MudMenuItem>
+                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.RemoveCircle">Remover</MudMenuItem>
+            </ChildContent>
+        </MudMenu>
+        <MudMenu FullWidth="false" ActivationEvent="MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopLeft" Variant="Variant.Filled">
+            <ActivatorContent>
+                <MudFab StartIcon="@Icons.Material.Filled.ShoppingCart" Color="Color.Primary" Size="Size.Small" Label="Produtos"/>
+            </ActivatorContent>
+            <ChildContent>
+                <MudMenuItem OnClick="@(() => OpenProductDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
+                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.Edit">Editar</MudMenuItem>
+                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.RemoveCircle">Remover</MudMenuItem>
+            </ChildContent>
+        </MudMenu>
+        <MudFab StartIcon="@Icons.Material.Filled.Update" Size="Size.Small" OnClick="@(() => Atualizar())"/>
+    </MudToolBar>
+</MudPaper>
+<MudDataGrid Items="@_produtos" T="Produto" Hover="true" Dense="true">
+    <Columns>
+        <PropertyColumn Property="x => x.CodigoSistema" Title="Código do sistema" CellStyleFunc="@_cellStyleFunc"/>
+        <PropertyColumn Property="x => x.Descricao" Title="Descrição" CellStyleFunc="@_cellStyleFunc"/>
+        <PropertyColumn Property="x => x.QuantidadeFormula" Title="Quantidade Fórmula" Hidden="false" CellStyleFunc="@_cellStyleFunc" Format="N5"/>
+        <PropertyColumn Property="x => x.QuantidadeProducao" Title="Quantidade Produção" CellStyleFunc="@_cellStyleFunc"/>
+        <PropertyColumn Property="x => x.MateriaPrima" Title="Tipo Estoque" CellStyleFunc="@_cellStyleFunc"/>
+        <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
+            <CellTemplate>
+                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenEditProductDialogAsync(@context.Item))"/>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+<br><br>
+<MudTextField @bind-Value="@QuantidadeLitrosProduzidos" Label="Quantidade Litros produzidos" Variant="Variant.Filled"/>
+<MudTextField @bind-Value="@QuantidadeEmbalagens" Label="Quantidade Embalagens" Variant="Variant.Filled" ReadOnly/>
+<MudTextField @bind-Value="@QuantidadeCaixas" Label="Quantidade de Caixas" Variant="Variant.Filled" ReadOnly/>
+<MudTextField @bind-Value="@ValorMaoDeObra" Label="Valor Da Mão de Obra" Variant="Variant.Filled" ReadOnly/>
+<MudTextField @bind-Value="@ValorCobradoMaoDeObra" Label="Valor Cobrado Mão de Obra" Variant="Variant.Filled" ReadOnly/>
+<MudTextField @bind-Value="@PesoLiquido" Label="Peso Liquido" Variant="Variant.Filled" ReadOnly/>
+<MudTextField @bind-Value="@PesoBruto" Label="Peso Bruto" Variant="Variant.Filled" ReadOnly/>
+
 @code {
+    private Receita _receita = new Receita();
+    private IEnumerable<Produto> _produtos = new List<Produto>();
+    private IEnumerable<Receita> _receitas = new List<Receita>();
+    private string stringValue { get; set; }
     
+    private int QuantidadeLitrosProduzidos { get; set; }
+    private double QuantidadeEmbalagens { get; set; }
+    private double QuantidadeCaixas { get; set; }
+    private decimal ValorMaoDeObra { get; set; }
+    private decimal ValorCobradoMaoDeObra { get; set; }
+    private double PesoLiquido { get; set; }
+    private double PesoBruto { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _receitas = await _context.Receita.ToListAsync();
+    }
+
+    private Func<Produto, string> _cellStyleFunc => x =>
+    {
+        string style = "";
+
+        if (x.MateriaPrima == "Proauto")
+            style += "background-color:#FFFFFF";
+
+        else if (x.MateriaPrima == "Boa Solução" && x.Tipo != "Produto")
+            style += "background-color:#ffff00";
+
+        else if (x.MateriaPrima == "Mão de Obra")
+            style += "background-color:#e8e8e8";
+        
+        else if (x.Tipo == "Produto")
+            style += "background-color:#a9d08e";
+        
+        return style;
+    };
+
+    private async Task OpenReceiptDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CadastrarReceitas>("Cadastrar Receita", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+            _receitas = await _context.Receita.ToListAsync();
+    }
+
+    private async Task OpenProductDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CadastrarProdutos>("Cadastrar Produtos", options);
+    }
+
+    private async Task OpenEditProductDialogAsync(Produto produto)
+    {
+        var parametros = new DialogParameters<CadastrarProdutos>
+        {
+            { x => x.Produto, produto }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarProdutos>("Editar Produto", parametros, options);
+    }
+
+    private async Task Atualizar()
+    {
+        try
+        {
+            _produtos = await _context.Produto.Where(p => p.IdReceita == _receita.Id).ToListAsync();
+            var receitaAtiva = _context.Receita.Where(r => r.Id == _receita.Id).FirstOrDefault();
+            await CalcularDados(receitaAtiva);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Ocorreu um erro ao coletar os dados da receita.", Severity.Error);
+        }
+    }
+
+    private async Task CalcularDados(Receita receita)
+    {
+        
+        QuantidadeEmbalagens = QuantidadeLitrosProduzidos / receita.Embalagem;
+        QuantidadeCaixas = receita.Caixas > 0 ? QuantidadeEmbalagens / receita.Caixas : 0;
+        ValorMaoDeObra = receita.ValorMaoDeObra;
+        ValorCobradoMaoDeObra = ValorMaoDeObra * (decimal)QuantidadeEmbalagens;
+        PesoLiquido = QuantidadeLitrosProduzidos * 1.03;
+        PesoBruto = QuantidadeLitrosProduzidos * 1.05;
+        
+        foreach (var produto in _produtos)
+        {
+            if (produto.Tipo == "Caixa" )
+            {
+                produto.QuantidadeProducao = (decimal)QuantidadeCaixas;
+            }
+            else if (produto.Tipo == "Embalagem" || produto.Tipo == "Produto")
+            {
+                produto.QuantidadeProducao = (decimal)QuantidadeEmbalagens;
+            }
+            else if (produto.Tipo == "Mão de Obra")
+            {
+                produto.QuantidadeProducao = 1m;
+            }
+            else 
+            {
+                produto.QuantidadeProducao = produto.QuantidadeFormula * (decimal)QuantidadeLitrosProduzidos;
+            }
+            
+        }
+    }
+
 }
