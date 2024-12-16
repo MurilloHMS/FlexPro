@@ -1,14 +1,43 @@
 @page "/BoaSolucao"
 
+@inject IDialogService DialogService
+@inject ApplicationDbContext _context
+
 @attribute [Authorize]
 
 <MudText Typo="Typo.h4" Align="Align.Center">Pedidos Boa Solução</MudText>
 
 <MudSelect @bind-Value="stringValue" Label="Selecione uma receita" HelperText="Receita do produto para emissão da nota fiscal" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary">
-    <MudSelectItem Value="@("Pizza")" Disabled="true">Pizza (Disabled)</MudSelectItem>
-    <MudSelectItem Value="@("Burger")">Burger</MudSelectItem>
-    <MudSelectItem Value="@("Hotdog")">Hot Dog</MudSelectItem>
+    @foreach (var item in _receitas)
+    {
+        <MudSelectItem Value="@item.Nome">@item.Nome</MudSelectItem>
+    }
 </MudSelect>
+<MudPaper Elevation="25">
+    <MudToolBar>
+        <MudMenu FullWidth="false" ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Variant="Variant.Filled" Dense="true">
+            <ActivatorContent>
+                <MudFab StartIcon="@Icons.Material.Filled.Receipt" Color="Color.Primary" Size="Size.Small" Label="Receitas"/>
+            </ActivatorContent>
+            <ChildContent>
+                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
+                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.Edit">Editar</MudMenuItem>
+                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.RemoveCircle">Remover</MudMenuItem>
+            </ChildContent>
+        </MudMenu>
+        <MudMenu FullWidth="false" ActivationEvent="MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopLeft" Variant="Variant.Filled">
+            <ActivatorContent>
+                <MudFab StartIcon="@Icons.Material.Filled.ShoppingCart" Color="Color.Primary" Size="Size.Small" Label="Produtos"/>
+            </ActivatorContent>
+            <ChildContent>
+                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
+                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.Edit">Editar</MudMenuItem>
+                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.RemoveCircle">Remover</MudMenuItem>
+            </ChildContent>
+        </MudMenu>
+        <MudFab StartIcon="@Icons.Material.Filled.Update" Size="Size.Small"/>
+    </MudToolBar>
+</MudPaper>
 <MudDataGrid Items="@_produtos" T="Produto" Hover="true" Dense="true">
     <Columns>
         <PropertyColumn Property="x => x.CodigoSistema" Title="Código do sistema" CellStyleFunc="@_cellStyleFunc"/>
@@ -20,8 +49,9 @@
 </MudDataGrid>
 @code {
     private IEnumerable<Produto> _produtos = new List<Produto>();
+    private IEnumerable<Receita> _receitas = new List<Receita>();
     private string stringValue { get; set; }
-    
+
     protected override async Task OnInitializedAsync()
     {
         _produtos = new List<Produto>()
@@ -43,8 +73,9 @@
                 MateriaPrima = "Mão de Obra"
             }
         };
+        _receitas = await _context.Receita.ToListAsync();
     }
-    
+
     private Func<Produto, string> _cellStyleFunc => x =>
     {
         string style = "";
@@ -60,4 +91,15 @@
 
         return style;
     };
+
+    private async Task OpenReceiptDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await DialogService.ShowAsync<CadastrarReceitas>("Cadastrar Receita", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+            _receitas = await _context.Receita.ToListAsync();
+    }
+    
 }
