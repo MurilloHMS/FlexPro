@@ -18,7 +18,7 @@
                             <MudSelectItem Value="item">@item</MudSelectItem>
                         }
                     </MudSelect>
-                    <MudSelect Label="Tipo de Produto" @bind-Value="_produto.Tipo">
+                    <MudSelect Label="Tipo de Produto" @bind-Value="_produto.Tipo" Required>
                         @foreach (var item in _tipoDeProduto)
                         {
                             <MudSelectItem Value="item">@item</MudSelectItem>
@@ -51,7 +51,7 @@
 
     private string[] _tipoDeProduto =
     {
-        "Mão de Obra", "Embalagem", "Caixa", "Produto"
+        "Mão de Obra", "Embalagem", "Caixa", "Produto","Obra Prima"
     };
 
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }

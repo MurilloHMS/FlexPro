@@ -23,7 +23,7 @@
             </ActivatorContent>
             <ChildContent>
                 <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
-                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.Edit">Editar</MudMenuItem>
+                <MudMenuItem OnClick="@(() => OpenEditReceiptDialogAsync(_receita))" Icon="@Icons.Material.Filled.Edit">Editar</MudMenuItem>
                 <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.RemoveCircle">Remover</MudMenuItem>
             </ChildContent>
         </MudMenu>
@@ -69,7 +69,7 @@
     private IEnumerable<Receita> _receitas = new List<Receita>();
     private string stringValue { get; set; }
     
-    private int QuantidadeLitrosProduzidos { get; set; }
+    private double QuantidadeLitrosProduzidos { get; set; }
     private double QuantidadeEmbalagens { get; set; }
     private double QuantidadeCaixas { get; set; }
     private decimal ValorMaoDeObra { get; set; }
@@ -109,6 +109,17 @@
 
         if (!result.Canceled)
             _receitas = await _context.Receita.ToListAsync();
+    }
+    private async Task OpenEditReceiptDialogAsync(Receita receita)
+    {
+        var buscaReceita = await _context.Receita.Where(r => r.Id == receita.Id).FirstOrDefaultAsync();
+        var parametros = new DialogParameters<CadastrarReceitas>
+        {
+            { x => x.Receita, buscaReceita }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarReceitas>("Editar Receita", parametros, options);
     }
 
     private async Task OpenProductDialogAsync()
@@ -158,9 +169,20 @@
             {
                 produto.QuantidadeProducao = (decimal)QuantidadeCaixas;
             }
-            else if (produto.Tipo == "Embalagem" || produto.Tipo == "Produto")
+            else if (produto.Tipo == "Embalagem")
             {
                 produto.QuantidadeProducao = (decimal)QuantidadeEmbalagens;
+            }
+            else if (produto.Tipo == "Produto")
+            {
+                if (receita.Caixas >0 && receita.Caixas != null)
+                {
+                    produto.QuantidadeProducao = (decimal)QuantidadeCaixas;
+                }
+                else
+                {
+                    produto.QuantidadeProducao = (decimal)QuantidadeEmbalagens;
+                }
             }
             else if (produto.Tipo == "Mão de Obra")
             {
