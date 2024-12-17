@@ -24,44 +24,53 @@
             <ChildContent>
                 <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
                 <MudMenuItem OnClick="@(() => OpenEditReceiptDialogAsync(_receita))" Icon="@Icons.Material.Filled.Edit">Editar</MudMenuItem>
-                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.RemoveCircle">Remover</MudMenuItem>
+                <MudMenuItem Icon="@Icons.Material.Filled.RemoveCircle">Remover</MudMenuItem>
             </ChildContent>
         </MudMenu>
-        <MudMenu FullWidth="false" ActivationEvent="MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopLeft" Variant="Variant.Filled">
+        <MudMenu FullWidth="false" ActivationEvent="MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopLeft" Variant="Variant.Filled" Dense="true">
             <ActivatorContent>
                 <MudFab StartIcon="@Icons.Material.Filled.ShoppingCart" Color="Color.Primary" Size="Size.Small" Label="Produtos"/>
             </ActivatorContent>
             <ChildContent>
                 <MudMenuItem OnClick="@(() => OpenProductDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
-                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.Edit">Editar</MudMenuItem>
-                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.RemoveCircle">Remover</MudMenuItem>
             </ChildContent>
         </MudMenu>
         <MudFab StartIcon="@Icons.Material.Filled.Update" Size="Size.Small" OnClick="@(() => Atualizar())"/>
     </MudToolBar>
 </MudPaper>
-<MudDataGrid Items="@_produtos" T="Produto" Hover="true" Dense="true">
-    <Columns>
-        <PropertyColumn Property="x => x.CodigoSistema" Title="Código do sistema" CellStyleFunc="@_cellStyleFunc"/>
-        <PropertyColumn Property="x => x.Descricao" Title="Descrição" CellStyleFunc="@_cellStyleFunc"/>
-        <PropertyColumn Property="x => x.QuantidadeFormula" Title="Quantidade Fórmula" Hidden="false" CellStyleFunc="@_cellStyleFunc" Format="N5"/>
-        <PropertyColumn Property="x => x.QuantidadeProducao" Title="Quantidade Produção" CellStyleFunc="@_cellStyleFunc"/>
-        <PropertyColumn Property="x => x.MateriaPrima" Title="Tipo Estoque" CellStyleFunc="@_cellStyleFunc"/>
-        <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
-            <CellTemplate>
-                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenEditProductDialogAsync(@context.Item))"/>
-            </CellTemplate>
-        </TemplateColumn>
-    </Columns>
-</MudDataGrid>
-<br><br>
-<MudTextField @bind-Value="@QuantidadeLitrosProduzidos" Label="Quantidade Litros produzidos" Variant="Variant.Filled"/>
-<MudTextField @bind-Value="@QuantidadeEmbalagens" Label="Quantidade Embalagens" Variant="Variant.Filled" ReadOnly/>
-<MudTextField @bind-Value="@QuantidadeCaixas" Label="Quantidade de Caixas" Variant="Variant.Filled" ReadOnly/>
-<MudTextField @bind-Value="@ValorMaoDeObra" Label="Valor Da Mão de Obra" Variant="Variant.Filled" ReadOnly/>
-<MudTextField @bind-Value="@ValorCobradoMaoDeObra" Label="Valor Cobrado Mão de Obra" Variant="Variant.Filled" ReadOnly/>
-<MudTextField @bind-Value="@PesoLiquido" Label="Peso Liquido" Variant="Variant.Filled" ReadOnly/>
-<MudTextField @bind-Value="@PesoBruto" Label="Peso Bruto" Variant="Variant.Filled" ReadOnly/>
+<MudGrid>
+    <MudItem xs="12" sm="8">
+        <MudPaper Class="pa-4">
+            <MudDataGrid Items="@_produtos" T="Produto" Hover="true" Dense="true">
+                <Columns>
+                    <PropertyColumn Property="x => x.CodigoSistema" Title="Código do sistema" CellStyleFunc="@_cellStyleFunc"/>
+                    <PropertyColumn Property="x => x.Descricao" Title="Descrição" CellStyleFunc="@_cellStyleFunc"/>
+                    <PropertyColumn Property="x => x.QuantidadeFormula" Title="Quantidade Fórmula" Hidden="false" CellStyleFunc="@_cellStyleFunc" Format="N5"/>
+                    <PropertyColumn Property="x => x.QuantidadeProducao" Title="Quantidade Produção" CellStyleFunc="@_cellStyleFunc"/>
+                    <PropertyColumn Property="x => x.MateriaPrima" Title="Tipo Estoque" CellStyleFunc="@_cellStyleFunc"/>
+                    <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
+                        <CellTemplate>
+                            <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenEditProductDialogAsync(@context.Item))"/>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <MudPaper Class="pa-4 mud-height-full">
+            <MudTextField @bind-Value="@QuantidadeLitrosProduzidos" Label="Quantidade Litros produzidos" Variant="Variant.Text"/>
+            <MudTextField @bind-Value="@QuantidadeEmbalagens" Label="Quantidade Embalagens" Variant="Variant.Filled" ReadOnly/>
+            <MudTextField @bind-Value="@QuantidadeCaixas" Label="Quantidade de Caixas" Variant="Variant.Filled" ReadOnly/>
+            <MudTextField @bind-Value="@ValorMaoDeObra" Label="Valor Da Mão de Obra" Variant="Variant.Filled" ReadOnly/>
+            <MudTextField @bind-Value="@ValorCobradoMaoDeObra" Label="Valor Cobrado Mão de Obra" Variant="Variant.Filled" ReadOnly/>
+            <MudTextField @bind-Value="@PesoLiquido" Label="Peso Liquido" Variant="Variant.Filled" ReadOnly/>
+            <MudTextField @bind-Value="@PesoBruto" Label="Peso Bruto" Variant="Variant.Filled" ReadOnly/>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+
 
 @code {
     private Receita _receita = new Receita();
