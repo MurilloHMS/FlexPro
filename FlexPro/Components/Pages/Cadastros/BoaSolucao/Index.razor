@@ -1,5 +1,4 @@
 @page "/BoaSolucao"
-@using Humanizer
 
 @inject IDialogService DialogService
 @inject ApplicationDbContext _context
@@ -9,43 +8,52 @@
 
 <MudText Typo="Typo.h4" Align="Align.Center">Pedidos Boa Solução</MudText>
 
-<MudSelect @bind-Value="_receita.Id" Label="Selecione uma receita" HelperText="Receita do produto para emissão da nota fiscal" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary">
-    @foreach (var item in _receitas)
-    {
-        <MudSelectItem Value="@item.Id">@item.Nome</MudSelectItem>
-    }
-</MudSelect>
-<MudPaper Elevation="25">
-    <MudToolBar>
-        <MudMenu FullWidth="false" ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Variant="Variant.Filled" Dense="true">
-            <ActivatorContent>
-                <MudFab StartIcon="@Icons.Material.Filled.Receipt" Color="Color.Primary" Size="Size.Small" Label="Receitas"/>
-            </ActivatorContent>
-            <ChildContent>
-                <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
-                <MudMenuItem OnClick="@(() => OpenEditReceiptDialogAsync(_receita))" Icon="@Icons.Material.Filled.Edit">Editar</MudMenuItem>
-                <MudMenuItem Icon="@Icons.Material.Filled.RemoveCircle">Remover</MudMenuItem>
-            </ChildContent>
-        </MudMenu>
-        <MudMenu FullWidth="false" ActivationEvent="MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopLeft" Variant="Variant.Filled" Dense="true">
-            <ActivatorContent>
-                <MudFab StartIcon="@Icons.Material.Filled.ShoppingCart" Color="Color.Primary" Size="Size.Small" Label="Produtos"/>
-            </ActivatorContent>
-            <ChildContent>
-                <MudMenuItem OnClick="@(() => OpenProductDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
-            </ChildContent>
-        </MudMenu>
-        <MudFab StartIcon="@Icons.Material.Filled.Update" Size="Size.Small" OnClick="@(() => Atualizar())"/>
-    </MudToolBar>
-</MudPaper>
+
+
 <MudGrid>
+    <MudItem xs="12">
+        <MudPaper>
+            <MudSelect @bind-Value="_receita.Id" Label="Selecione uma receita" HelperText="Receita do produto para emissão da nota fiscal" AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary">
+                @foreach (var item in _receitas)
+                {
+                    <MudSelectItem Value="@item.Id">@item.Nome</MudSelectItem>
+                }
+            </MudSelect>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="8">
+        <MudPaper >
+            <MudToolBar>
+                <MudMenu FullWidth="false" ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Variant="Variant.Filled" Dense="true">
+                    <ActivatorContent>
+                        <MudFab StartIcon="@Icons.Material.Filled.Receipt" Color="Color.Primary" Size="Size.Small" Label="Receitas"/>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
+                        <MudMenuItem OnClick="@(() => OpenEditReceiptDialogAsync(_receita))" Icon="@Icons.Material.Filled.Edit">Editar</MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Filled.RemoveCircle">Remover</MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
+                <MudMenu FullWidth="false" ActivationEvent="MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopLeft" Variant="Variant.Filled" Dense="true">
+                    <ActivatorContent>
+                        <MudFab StartIcon="@Icons.Material.Filled.ShoppingCart" Color="Color.Primary" Size="Size.Small" Label="Produtos"/>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem OnClick="@(() => OpenProductDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
+                <MudFab StartIcon="@Icons.Material.Filled.Update" Size="Size.Small" OnClick="@(() => Atualizar())"/>
+            </MudToolBar>
+        </MudPaper>
+    </MudItem>
+    <MudFlexBreak/>
     <MudItem xs="12" sm="8">
         <MudPaper Class="pa-4">
-            <MudDataGrid Items="@_produtos" T="Produto" Hover="true" Dense="true">
+            <MudDataGrid Items="@_produtos" T="Produto" Hover="true" Dense="true" >
                 <Columns>
                     <PropertyColumn Property="x => x.CodigoSistema" Title="Código do sistema" CellStyleFunc="@_cellStyleFunc"/>
                     <PropertyColumn Property="x => x.Descricao" Title="Descrição" CellStyleFunc="@_cellStyleFunc"/>
-                    <PropertyColumn Property="x => x.QuantidadeFormula" Title="Quantidade Fórmula" Hidden="false" CellStyleFunc="@_cellStyleFunc" Format="N5"/>
+                    <PropertyColumn Property="x => x.QuantidadeFormula" Title="Quantidade Fórmula" Hidden="!_showFormulas" CellStyleFunc="@_cellStyleFunc" Format="N5"/>
                     <PropertyColumn Property="x => x.QuantidadeProducao" Title="Quantidade Produção" CellStyleFunc="@_cellStyleFunc"/>
                     <PropertyColumn Property="x => x.MateriaPrima" Title="Tipo Estoque" CellStyleFunc="@_cellStyleFunc"/>
                     <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
@@ -55,6 +63,10 @@
                     </TemplateColumn>
                 </Columns>
             </MudDataGrid>
+            <div class="d-flex flex-wrap mt-4">
+                <MudSwitch @bind-Value="_showFormulas" Color="Color.Primary">Mostrar Fórmulas</MudSwitch>
+                
+            </div>
         </MudPaper>
     </MudItem>
     <MudItem xs="12" sm="4">
@@ -77,6 +89,7 @@
     private IEnumerable<Produto> _produtos = new List<Produto>();
     private IEnumerable<Receita> _receitas = new List<Receita>();
     private string stringValue { get; set; }
+    private bool _showFormulas = false;
     
     private double QuantidadeLitrosProduzidos { get; set; }
     private double QuantidadeEmbalagens { get; set; }
