@@ -21,7 +21,7 @@
             </MudSelect>
         </MudPaper>
     </MudItem>
-    <MudItem xs="8">
+    <MudItem xs="12" sm="8">
         <MudPaper >
             <MudToolBar>
                 <MudMenu FullWidth="false" ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Variant="Variant.Filled" Dense="true">
@@ -44,6 +44,15 @@
                 </MudMenu>
                 <MudFab StartIcon="@Icons.Material.Filled.Update" Size="Size.Small" OnClick="@(() => Atualizar())"/>
             </MudToolBar>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="4" >
+        <MudPaper Class="pa-4">
+            <MudStack Row="true">
+                <MudTextField @bind-Value="@ValorParaCalcular" Label="Calcular Valor do Produto" Variant="Variant.Outlined" Margin="Margin.Dense"/>
+                <MudIconButton Icon="@Icons.Material.Filled.Calculate" Color="Color.Primary" OnClick="@(() => CalcularValor())"/>
+                <MudTextField @bind-Value="@ResultadoDoCalculo" Label="Resultado" Variant="Variant.Outlined" Margin="Margin.Dense" ReadOnly="true"/>
+            </MudStack>
         </MudPaper>
     </MudItem>
     <MudFlexBreak/>
@@ -98,6 +107,8 @@
     private decimal ValorCobradoMaoDeObra { get; set; }
     private double PesoLiquido { get; set; }
     private double PesoBruto { get; set; }
+    private decimal ValorParaCalcular { get; set; }
+    private decimal ResultadoDoCalculo { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -216,6 +227,20 @@
             }
             
         }
+    }
+
+    private async Task CalcularValor()
+    {
+        decimal calculo;
+        if (QuantidadeCaixas >0 && QuantidadeCaixas != null)
+        {
+            calculo = ValorParaCalcular / (decimal)QuantidadeCaixas;
+        }
+        else
+        {
+            calculo = ValorParaCalcular / (decimal)QuantidadeEmbalagens;
+        }
+        ResultadoDoCalculo = calculo != 0 && calculo != null ? calculo : 0m ;
     }
 
 }
