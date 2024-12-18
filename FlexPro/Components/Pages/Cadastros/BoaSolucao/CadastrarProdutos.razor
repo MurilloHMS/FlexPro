@@ -8,7 +8,7 @@
     <DialogContent>
         <MudGrid>
             <MudItem xs="12" sm="12">
-                <MudForm @ref=form @bind-IsValid="_isFormValid" Spacing="5">
+                <MudForm @ref="form" @bind-IsValid="_isFormValid" Spacing="5">
                     <MudTextField Label="Código Sistema" @bind-Value="_produto.CodigoSistema" Required/>
                     <MudTextField Label="Descrição" @bind-Value="_produto.Descricao" Required/>
                     <MudTextField Label="Quantidade Fórmula" @bind-Value="_produto.QuantidadeFormula" T="decimal" Required/>
