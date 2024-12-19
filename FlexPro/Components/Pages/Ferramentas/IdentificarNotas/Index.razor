@@ -102,13 +102,16 @@
         foreach (var file in files)
         {
             var extension = Path.GetExtension(file.Name)?.ToLower();
-            if (extension is ".xls" or ".pdf" or ".xlsx")
+            if (extension is".pdf" or ".xlsx")
             {
                 _fileNames.Add(file);
             }
             else
             {
-                Snackbar.Add($"Arquivo inválido ignorado: {file.Name}", Severity.Warning);
+                if (extension is "xls")
+                    Snackbar.Add($"Arquivo XlS não Aceito para leitura: {file.Name}", Severity.Warning);
+                else
+                    Snackbar.Add($"Arquivo inválido ignorado: {file.Name}", Severity.Warning);
             }
         }
     }
