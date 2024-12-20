@@ -146,7 +146,7 @@
             inputPdfPath = Path.GetTempFileName();
             using (var stream = new FileStream(inputPdfPath, FileMode.Create))
             {
-                await file.OpenReadStream().CopyToAsync(stream);
+                await file.OpenReadStream(maxAllowedSize: long.MaxValue).CopyToAsync(stream);
             }
 
             var paginas = SepararPDF.GetSeparatePdfByPage(inputPdfPath);
