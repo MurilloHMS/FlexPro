@@ -1,4 +1,5 @@
 @page "/BoaSolucao"
+@using Anchor = MudBlazor.Anchor
 
 @inject IDialogService DialogService
 @inject ApplicationDbContext _context
@@ -24,25 +25,28 @@
     <MudItem xs="12" sm="8">
         <MudPaper >
             <MudToolBar>
-                <MudMenu FullWidth="false" ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Variant="Variant.Filled" Dense="true">
-                    <ActivatorContent>
-                        <MudFab StartIcon="@Icons.Material.Filled.Receipt" Color="Color.Primary" Size="Size.Small" Label="Receitas"/>
-                    </ActivatorContent>
-                    <ChildContent>
-                        <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
-                        <MudMenuItem OnClick="@(() => OpenEditReceiptDialogAsync(_receita))" Icon="@Icons.Material.Filled.Edit">Editar</MudMenuItem>
-                        <MudMenuItem Icon="@Icons.Material.Filled.RemoveCircle">Remover</MudMenuItem>
-                    </ChildContent>
-                </MudMenu>
-                <MudMenu FullWidth="false" ActivationEvent="MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopLeft" Variant="Variant.Filled" Dense="true">
-                    <ActivatorContent>
-                        <MudFab StartIcon="@Icons.Material.Filled.ShoppingCart" Color="Color.Primary" Size="Size.Small" Label="Produtos"/>
-                    </ActivatorContent>
-                    <ChildContent>
-                        <MudMenuItem OnClick="@(() => OpenProductDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
-                    </ChildContent>
-                </MudMenu>
-                <MudFab StartIcon="@Icons.Material.Filled.Update" Size="Size.Small" OnClick="@(() => Atualizar())"/>
+                <MudStack Row="true" Spacing="3">
+                    <MudMenu FullWidth="false" ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Variant="Variant.Filled" Dense="true">
+                        <ActivatorContent>
+                            <MudFab StartIcon="@Icons.Material.Filled.Receipt" Color="Color.Primary" Size="Size.Small" Label="Receitas"/>
+                        </ActivatorContent>
+                        <ChildContent>
+                            <MudMenuItem OnClick="@(() => OpenReceiptDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
+                            <MudMenuItem OnClick="@(() => OpenEditReceiptDialogAsync(_receita))" Icon="@Icons.Material.Filled.Edit">Editar</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Filled.RemoveCircle">Remover</MudMenuItem>
+                        </ChildContent>
+                    </MudMenu>
+                    <MudMenu FullWidth="false" ActivationEvent="MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopLeft" Variant="Variant.Filled" Dense="true">
+                        <ActivatorContent>
+                            <MudFab StartIcon="@Icons.Material.Filled.ShoppingCart" Color="Color.Primary" Size="Size.Small" Label="Produtos"/>
+                        </ActivatorContent>
+                        <ChildContent>
+                            <MudMenuItem OnClick="@(() => OpenProductDialogAsync())" Icon="@Icons.Material.Filled.AddCircle">Cadastrar</MudMenuItem>
+                        </ChildContent>
+                    </MudMenu>
+                    <MudFab StartIcon="@Icons.Material.Filled.Update" Size="Size.Small" OnClick="@(() => Atualizar())"/>
+                    <MudFab StartIcon="@Icons.Material.Filled.Done" Size="Size.Small" Color="Color.Tertiary" Label="Validar" OnClick="@(() => OpenDrawer())"/>
+                </MudStack>
             </MudToolBar>
         </MudPaper>
     </MudItem>
@@ -91,14 +95,64 @@
     </MudItem>
 </MudGrid>
 
-
+<MudDrawer @bind-Open="@_open" Anchor="Anchor.Top" Elevation="1" Variant="@DrawerVariant.Temporary" OverlayAutoClose="false">
+    <MudDrawerHeader>
+        <MudText Typo="Typo.h6" Align="Align.Center">Validação Boa Solução</MudText>
+    </MudDrawerHeader>
+    <MudDrawerContainer>
+        <MudGrid>
+            <MudItem xs="12" sm="8">
+                <MudPaper>
+                    <MudTable T="string" Hover="true" Breakpoint="Breakpoint.Sm">
+                        <HeaderContent>
+                            <MudTh>Produto</MudTh>
+                            <MudTh>Descrição</MudTh>
+                            <MudTh>Quantidade</MudTh>
+                            <MudTh>Vlr. Unitário</MudTh>
+                            <MudTh>Vlr. Total</MudTh>
+                            <MudTh>Válido?</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            
+                        </RowTemplate>
+                    </MudTable>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                <MudTextField T="string" FullWidth="true" Label="Descrição da nota" AdornmentIcon="@Icons.Material.Filled.SelectAll" Lines="10" OnAdornmentClick="@(() => multilineReference.SelectAsync())"/>
+            </MudItem>
+            <MudFlexBreak/>
+            <MudDivider/>
+            <MudItem xs="12" sm="8"></MudItem>
+            <MudItem xs="12" sm="4">
+                <MudStack Row="true" Spacing="3">
+                    <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                                   MaximumFileCount="1"
+                                   @ref="@_fileUpload"
+                                   OnFilesChanged="OnInputFileChanged">
+                        <ActivatorContent>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary">Upload Arquivo</MudButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+                    <MudText Typo="Typo.h6">@_fileNames.Count() Arquivo@(_fileNames.Count() == 1 ? "" : "s"):</MudText>
+                    <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Disabled="@(!_fileNames.Any())">Validar</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" Disabled="@(!_fileNames.Any())">Limpar</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(() => _open = false)">Fechar</MudButton>
+                </MudStack>
+            </MudItem>
+            <MudFlexBreak/>
+            <MudItem/>
+        </MudGrid>
+    </MudDrawerContainer>
+</MudDrawer>
 
 @code {
     private Receita _receita = new Receita();
     private IEnumerable<Produto> _produtos = new List<Produto>();
     private IEnumerable<Receita> _receitas = new List<Receita>();
-    private string stringValue { get; set; }
+    private string textToDescription { get; set; }
     private bool _showFormulas = false;
+    private bool _open = false;
     
     private double QuantidadeLitrosProduzidos { get; set; }
     private double QuantidadeEmbalagens { get; set; }
@@ -109,6 +163,36 @@
     private double PesoBruto { get; set; }
     private decimal ValorParaCalcular { get; set; }
     private decimal ResultadoDoCalculo { get; set; }
+
+    private MudTextField<string> multilineReference;
+    private readonly List<string> _fileNames = new();
+    private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
+
+    private async Task ClearAsync()
+    {
+        await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
+        _fileNames.Clear();
+    }
+
+    private Task OpenFilePickerAsync()
+        => _fileUpload?.OpenFilePickerAsync() ?? Task.CompletedTask;
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        var files = e.GetMultipleFiles();
+        foreach (var file in files)
+        {
+            _fileNames.Clear();
+            _fileNames.Add(file.Name);
+        }
+    }
+
+    private void Upload()
+    {
+        // Upload the files here
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        Snackbar.Add("TODO: Upload your files!");
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -133,6 +217,12 @@
         
         return style;
     };
+    
+    private void OpenDrawer()
+    {
+        _open = true;
+        
+    }
 
     private async Task OpenReceiptDialogAsync()
     {

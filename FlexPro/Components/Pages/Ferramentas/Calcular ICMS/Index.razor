@@ -156,6 +156,12 @@
                 {
                     string icms = icmsTag.Element(ns + "vICMS")?.Value;
                     dados.vICMS = !string.IsNullOrEmpty(icms) && decimal.TryParse(icms, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal result) ? result : 0m;
+
+                    string pis = icmsTag.Element(ns + "vPIS").Value;
+                    dados.vPis = !string.IsNullOrEmpty(pis) && decimal.TryParse(pis, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal pisResult) ? pisResult : 0m;
+
+                    string cofins = icmsTag.Element(ns + "vCOFINS").Value;
+                    dados.vCofins = !string.IsNullOrEmpty(cofins) && decimal.TryParse(cofins, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal cofinsResult) ? cofinsResult : 0m;
                 }
 
                 return dados;
@@ -191,6 +197,9 @@
 
             worksheet.Cell(1, 1).Value = "Número da NFe";
             worksheet.Cell(1, 2).Value = "Valor do ICMS";
+            worksheet.Cell(1, 3).Value = "Valor do Pis";
+            worksheet.Cell(1, 4).Value = "Valor do Cofins";
+            
 
             int novaLinha = 2;
 
@@ -198,6 +207,8 @@
             {
                 worksheet.Cell(novaLinha, 1).Value = int.TryParse(linha.nNF, out var valor) ? valor : 0;
                 worksheet.Cell(novaLinha, 2).Value = linha.vICMS;
+                worksheet.Cell(novaLinha, 3).Value = linha.vPis;
+                worksheet.Cell(novaLinha, 4).Value = linha.vCofins;
                 novaLinha++;
             }
             
