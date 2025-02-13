@@ -134,8 +134,8 @@
                     </MudFileUpload>
                     <MudText Typo="Typo.h6">@_fileNames.Count() Arquivo@(_fileNames.Count() == 1 ? "" : "s"):</MudText>
                     <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Disabled="@(!_fileNames.Any())" OnClick="@(() => Upload())">Validar</MudButton>
-                    <MudButton Variant="Variant.Filled" Color="Color.Info" Disabled="@(!_fileNames.Any())">Limpar</MudButton>
-                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(() => _open = false)">Fechar</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" Disabled="@(!_fileNames.Any())" OnClick="@(() => ClearAsync())">Limpar</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(() => Close())">Fechar</MudButton>
                 </MudStack>
             </MudItem>
             <MudFlexBreak/>
@@ -171,6 +171,14 @@
     {
         await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
         _fileNames.Clear();
+        textToDescription = string.Empty;
+        _boaSolucao = new List<BoaSolucao>();
+    }
+
+    private async Task Close()
+    {
+        await ClearAsync();
+        _open = false;
     }
 
     private Task OpenFilePickerAsync()
