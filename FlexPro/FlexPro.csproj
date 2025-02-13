@@ -61,4 +61,9 @@
       <_ContentIncludedByDefault Remove="Components\Pages\Veiculos\Index.razor" />
     </ItemGroup>
 
+
+    <ItemGroup>
+      <Content Remove="Components\Pages\PainelAdministrativo\EditUserDialog.razor" />
+    </ItemGroup>
+
 </Project>

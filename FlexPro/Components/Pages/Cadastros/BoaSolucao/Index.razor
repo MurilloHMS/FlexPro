@@ -1,5 +1,6 @@
 @page "/BoaSolucao"
 @using Anchor = MudBlazor.Anchor
+@using Color = MudBlazor.Color
 
 @inject IDialogService DialogService
 @inject ApplicationDbContext _context
@@ -103,19 +104,16 @@
         <MudGrid>
             <MudItem xs="12" sm="8">
                 <MudPaper>
-                    <MudTable T="string" Hover="true" Breakpoint="Breakpoint.Sm">
-                        <HeaderContent>
-                            <MudTh>Produto</MudTh>
-                            <MudTh>Descrição</MudTh>
-                            <MudTh>Quantidade</MudTh>
-                            <MudTh>Vlr. Unitário</MudTh>
-                            <MudTh>Vlr. Total</MudTh>
-                            <MudTh>Válido?</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            
-                        </RowTemplate>
-                    </MudTable>
+                    <MudDataGrid Items="@_boaSolucao" T="BoaSolucao" Hover="true" Dense="true" >
+                        <Columns>
+                            <PropertyColumn Property="x => x.CodigoProduto" Title="Codigo Produto"/>
+                            <PropertyColumn Property="x => x.Descricao" Title="Descrição (Produto)"/>
+                            <PropertyColumn Property="x => x.Quantidade" Title="Quantidade"/>
+                            <PropertyColumn Property="x => x.Valor" Title="Valor Unitário"/>
+                            <PropertyColumn Property="x => x.ValorTotal" Title="Valor Total"/>
+                            <PropertyColumn Property="x => x.isValid" Title="É valido?"/>
+                        </Columns>
+                    </MudDataGrid>
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="4">
@@ -131,11 +129,11 @@
                                    @ref="@_fileUpload"
                                    OnFilesChanged="OnInputFileChanged">
                         <ActivatorContent>
-                            <MudButton Variant="Variant.Filled" Color="Color.Primary">Upload Arquivo</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" >Upload Arquivo</MudButton>
                         </ActivatorContent>
                     </MudFileUpload>
                     <MudText Typo="Typo.h6">@_fileNames.Count() Arquivo@(_fileNames.Count() == 1 ? "" : "s"):</MudText>
-                    <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Disabled="@(!_fileNames.Any())">Validar</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Tertiary" Disabled="@(!_fileNames.Any())" OnClick="@(() => Upload())">Validar</MudButton>
                     <MudButton Variant="Variant.Filled" Color="Color.Info" Disabled="@(!_fileNames.Any())">Limpar</MudButton>
                     <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@(() => _open = false)">Fechar</MudButton>
                 </MudStack>
@@ -150,6 +148,7 @@
     private Receita _receita = new Receita();
     private IEnumerable<Produto> _produtos = new List<Produto>();
     private IEnumerable<Receita> _receitas = new List<Receita>();
+    private IEnumerable<BoaSolucao> _boaSolucao = new List<BoaSolucao>();
     private string textToDescription { get; set; }
     private bool _showFormulas = false;
     private bool _open = false;
@@ -165,7 +164,7 @@
     private decimal ResultadoDoCalculo { get; set; }
 
     private MudTextField<string> multilineReference;
-    private readonly List<string> _fileNames = new();
+    private readonly List<IBrowserFile> _fileNames = new();
     private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
 
     private async Task ClearAsync()
@@ -183,15 +182,37 @@
         foreach (var file in files)
         {
             _fileNames.Clear();
-            _fileNames.Add(file.Name);
+            _fileNames.Add(file);
         }
     }
 
-    private void Upload()
+    private async Task Upload()
     {
-        // Upload the files here
         Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
-        Snackbar.Add("TODO: Upload your files!");
+        Snackbar.Add("Carregando arquivo para analise.");
+
+        if (_fileNames.Any())
+        {
+            var file = _fileNames.First();
+            _boaSolucao = await ColetarDadosBoaSolucao(file);
+
+            if (_produtos.Any())
+            {
+                foreach (var item in _boaSolucao)
+                {
+                    var produtoExiste = _produtos.Any(p => p.CodigoSistema == item.CodigoProduto);
+
+                    if (produtoExiste)
+                    {
+                        var produto = _produtos.FirstOrDefault(p => p.CodigoSistema == item.CodigoProduto);
+
+                        var isValid = produto.QuantidadeProducao == item.Quantidade;
+
+                        item.isValid = isValid;
+                    }
+                }
+            }
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -331,6 +352,34 @@
             calculo = ValorParaCalcular / (decimal)QuantidadeEmbalagens;
         }
         ResultadoDoCalculo = calculo != 0 && calculo != null ? calculo : 0m ;
+    }
+
+    public async Task<IEnumerable<BoaSolucao>> ColetarDadosBoaSolucao(IBrowserFile arquivo)
+    {
+        List<BoaSolucao> boaSolucao = new();
+
+        using (var stream = new MemoryStream())
+        {
+            await arquivo.OpenReadStream().CopyToAsync(stream);
+            stream.Position = 0;
+
+            using (XLWorkbook workbook = new(stream))
+            {
+                var planilha = workbook.Worksheets.First();
+                var fileData = planilha?.RowsUsed().Skip(3).Select(row => new BoaSolucao
+                {
+                    CodigoProduto = row.Cell(1).TryGetValue<string>(out var codigoDoProduto) ? codigoDoProduto : default,
+                    Descricao = row.Cell(2).TryGetValue<string>(out var descricao) ? descricao : default,
+                    Quantidade = row.Cell(3).TryGetValue<decimal>(out var quantidade) ? quantidade : default,
+                    Valor = row.Cell(4).TryGetValue<decimal>(out var valorUnitario) ? valorUnitario : default,
+                    ValorTotal = row.Cell(5).TryGetValue<decimal>(out var valorTotal) ? valorTotal : default
+                }).ToList();
+                
+                boaSolucao.AddRange(fileData ?? new List<BoaSolucao>());
+            }
+        }
+
+        return boaSolucao;
     }
 
 }
