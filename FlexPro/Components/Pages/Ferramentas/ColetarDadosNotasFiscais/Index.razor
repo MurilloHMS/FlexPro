@@ -83,12 +83,13 @@
     private readonly List<IBrowserFile> _fileNames = new();
     private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
 
-    public List<DadosNotasFiscais> DadosNFe = new List<DadosNotasFiscais>();
+    public List<DadosNotasFiscais> DadosNFe = new ();
 
     private async Task ClearAsync()
     {
         await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
         _fileNames.Clear();
+        DadosNFe = new List<DadosNotasFiscais>();
         ClearDragClass();
     }
 
@@ -112,7 +113,6 @@
     {
         Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
         Snackbar.Add("Iniciando Processamento dos arquivos...");
-
         foreach (var file in _fileNames)
         {
             var dados = await ProcessarXML(file);
