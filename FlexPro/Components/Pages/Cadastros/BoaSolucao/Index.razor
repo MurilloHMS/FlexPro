@@ -117,7 +117,7 @@
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" sm="4">
-                <MudTextField T="string" FullWidth="true" Label="Descrição da nota" AdornmentIcon="@Icons.Material.Filled.SelectAll" Lines="10" OnAdornmentClick="@(() => multilineReference.SelectAsync())"/>
+                <MudTextField T="string" @bind-Value="@textToDescription" FullWidth="true" Label="Descrição da nota" AdornmentIcon="@Icons.Material.Filled.SelectAll" Lines="10" OnAdornmentClick="@(() => multilineReference.SelectAsync())"/>
             </MudItem>
             <MudFlexBreak/>
             <MudDivider/>
@@ -191,6 +191,10 @@
         Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
         Snackbar.Add("Carregando arquivo para analise.");
 
+        decimal produtosBranco = 0m;
+        decimal produtosAmarelos = 0m;
+        decimal produtosCinza = 0m;
+
         if (_fileNames.Any())
         {
             var file = _fileNames.First();
@@ -209,8 +213,33 @@
                         var isValid = produto.QuantidadeProducao == item.Quantidade;
 
                         item.isValid = isValid;
+
+                        if (produto.MateriaPrima == "Proauto" && produto.Tipo == "Obra Prima")
+                        {
+                            produtosBranco += item.ValorTotal;
+                        }
+                        else if (produto.MateriaPrima == "Boa Solução" && produto.Tipo != "Produto")
+                        {
+                            produtosAmarelos += item.ValorTotal;
+                        }
+                        else if (produto.MateriaPrima == "Mão de Obra" && produto.Tipo == "Mão de Obra")
+                        {
+                            produtosCinza += item.ValorTotal;
+                        }
                     }
                 }
+
+                decimal mercadoriasEmpregas = produtosBranco + produtosAmarelos;
+                decimal totalCobrado = produtosBranco + produtosCinza;
+                
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"Valor da mercadoria recebida para industrializacao: {produtosAmarelos:C}");
+                sb.AppendLine();
+                sb.AppendLine($"Valor total das mercadorias empregadas: {mercadoriasEmpregas:C}");
+                sb.AppendLine();
+                sb.AppendLine($"Valor Total Cobrado: R$ {totalCobrado:C}");
+                
+                textToDescription = sb.ToString();
             }
         }
     }
