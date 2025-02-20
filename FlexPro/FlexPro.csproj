@@ -21,6 +21,7 @@
         <PackageReference Include="MudBlazor" Version="7.*" />
         <PackageReference Include="Extensions.MudBlazor.StaticInput" Version="2.*" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />
+        <PackageReference Include="PdfPig" Version="0.1.10-alpha-20250220-5a06e" />
         <PackageReference Include="PDFsharp" Version="6.1.1" />
     </ItemGroup>
 
