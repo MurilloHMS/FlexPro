@@ -155,6 +155,7 @@
                         if (numNfTag != null)
                         {
                             dados.NumeroNota = numNfTag.Element(ns + "nNF")?.Value;
+                            dados.DataNota = DateTime.TryParse(numNfTag.Element(ns + "dhEmi")?.Value, out DateTime dataNota) ? dataNota : default;
                         }
 
                         var emitenteTag = xmlDoc.Descendants(ns + "emit").FirstOrDefault();
@@ -171,6 +172,9 @@
 
                         string cfop = item.Element(ns + "CFOP")?.Value;
                         dados.CFOP = !string.IsNullOrEmpty(cfop) ? cfop : default;
+
+                        string valorTotalProduto = item.Element(ns + "vProd")?.Value;
+                        dados.ValorTotal = !string.IsNullOrEmpty(valorTotalProduto) && decimal.TryParse(valorTotalProduto, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal valorTotalResult) ? valorTotalResult : 0m;
                         
                         dadosDaNota.Add(dados);
                     }
@@ -210,9 +214,11 @@
 
             worksheet.Cell(1, 1).Value = "Fornecedor";
             worksheet.Cell(1, 2).Value = "Número NFe";
-            worksheet.Cell(1, 3).Value = "Produto";
-            worksheet.Cell(1, 4).Value = "Valor Unitário";
-            worksheet.Cell(1, 5).Value = "CFOP";
+            worksheet.Cell(1, 3).Value = "Data Emissão";
+            worksheet.Cell(1, 4).Value = "Produto";
+            worksheet.Cell(1, 5).Value = "Valor Unitário";
+            worksheet.Cell(1, 6).Value = "Valor Total";
+            worksheet.Cell(1, 7).Value = "CFOP";
 
             int novaLinha = 2;
 
@@ -220,9 +226,12 @@
             {
                 worksheet.Cell(novaLinha, 1).Value = linha.Fornecedor;
                 worksheet.Cell(novaLinha, 2).Value = int.TryParse(linha.NumeroNota,out var numNFe) ? numNFe : default;
-                worksheet.Cell(novaLinha, 3).Value = linha.Produto;
-                worksheet.Cell(novaLinha, 4).Value = linha.ValorUnitario;
-                worksheet.Cell(novaLinha, 5).Value = linha.CFOP;
+                worksheet.Cell(novaLinha, 3).Value = linha.DataNota;
+                worksheet.Cell(novaLinha, 4).Value = linha.Produto;
+                worksheet.Cell(novaLinha, 5).Value = linha.ValorUnitario;
+                worksheet.Cell(novaLinha, 6).Value = linha.ValorTotal;
+                worksheet.Cell(novaLinha, 7).Value = linha.CFOP;
+
                 novaLinha++;
             }
             
