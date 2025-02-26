@@ -1,4 +1,5 @@
-@page "/cadastros/clientes"
+@page "/clientes"
+
 @inject ApplicationDbContext _context;
 @inject IDialogService DialogService;
 
@@ -19,6 +20,13 @@
         <PropertyColumn Property="x => x.CodigoSistema" Title="Código Sistema" Sortable="true" Filterable="true"/>
         <PropertyColumn Property="x => x.Nome" Title="Nome" Sortable="true" Filterable="true"/>
         <PropertyColumn Property="x => x.Email" Title="E-Mail" Sortable="true" Filterable="true"/>
+        <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
+            <CellTemplate>
+                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenEditDialogAsync(@context.Item))"/>
+                <MudSpacer/>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => OpendDeleteDialogAsync(@context.Item))"/>
+            </CellTemplate>
+        </TemplateColumn>
     </Columns>
     <PagerContent>
         <MudDataGridPager T="Cliente"/>
@@ -57,5 +65,44 @@
             _clientes = await _context.Cliente.ToListAsync();
         }
     }
+    
+    private async Task OpendDeleteDialogAsync(Cliente cliente)
+    {
+        var parametros = new DialogParameters<DialogCliente>
+        {
+            { x => x.ContentText, "Tem certeza que você quer deletar este registro? Este processo não pode ser revertido!" },
+            { x => x.ButtonText, "Deletar" },
+            { x => x.Color, Color.Error },
+            { x => x.Cliente, cliente }
+        };
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+        
+        var dialog = await DialogService.ShowAsync<DialogCliente>("Deletar", parametros, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _clientes = await _context.Cliente.ToListAsync();
+        }
+    }
+    
+    private async Task OpenEditDialogAsync(Cliente cliente)
+    {
+        var parametros = new DialogParameters<CadastrarCliente>
+        {
+            {x => x.cliente, cliente}
+        };
+        
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarCliente>("Atualizar Cliente", parametros, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _clientes = await _context.Cliente.ToListAsync();
+        }
+    }
+    
 
 }
