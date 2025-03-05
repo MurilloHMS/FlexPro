@@ -53,6 +53,15 @@ builder.Services.AddLocalization();
 
 builder.Services.AddScoped<AbastecimentoService>();
 
+builder.Services.AddScoped(sp =>
+{
+    var client = new HttpClient
+    {
+        BaseAddress = new Uri("http://flexpro-api:5000")
+    };
+    return client;
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

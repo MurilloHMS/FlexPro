@@ -15,13 +15,59 @@ public class RelatorioClientesRepository
 
     public async Task GetMetrics(IEnumerable<DadosRelatorioEnvioCliente> relatorio)
     {
-        var clientes = await _context.Cliente.ToListAsync();
+        var relatorioPorCliente = relatorio
+        .GroupBy(x => x.CodigoSistema) // Agrupa pelo código do cliente
+        .ToList();
 
-        foreach (var cliente in clientes)  
+        foreach (var grupo in relatorioPorCliente)
         {
-            var quantidadeDeProdutosComprados = relatorio.Select(x => x.DadosVendas.Select(y => y.Produto).Count());
-            var quantidadeDeNotasFiscais =
-                relatorio.Select(x => x.DadosVendas.Select(c => c.NumeroNfe).Count());
+            var codigoCliente = grupo.Key; // Código do cliente
+            var dadosCliente = grupo.ToList(); // Dados do cliente
+
+            // Quantidade de produtos comprados
+            var quantidadeDeProdutosComprados = dadosCliente
+                .SelectMany(x => x.DadosVendas)
+                .Count();
+
+            // Quantidade de notas fiscais
+            var quantidadeDeNotasFiscais = dadosCliente
+                .SelectMany(x => x.DadosVendas)
+                .Select(y => y.NumeroNfe)
+                .Distinct()
+                .Count();
+
+            // Quantidade de ordens de serviço (OS)
+            var quantidadeDeOS = dadosCliente
+                .SelectMany(x => x.DadosServicos)
+                .Count();
+
+            // Produto mais comprado
+            var produtoMaisComprado = dadosCliente
+                .SelectMany(x => x.DadosVendas)
+                .GroupBy(y => y.Produto)
+                .OrderByDescending(g => g.Count())
+                .Select(g => g.Key)
+                .FirstOrDefault();
+
+            // Faturamento total
+            var faturamentoTotal = dadosCliente
+                .SelectMany(x => x.DadosVendas)
+                .Sum(y => y.ValorNota);
+
+            // Quantidade de visitas (assumindo que cada OS é uma visita)
+            var quantidadeDeVisitas = dadosCliente
+                .SelectMany(x => x.DadosServicos)
+                .Count();
+
+            // Exibe as métricas para o cliente atual
+            Console.WriteLine($"Cliente: {codigoCliente}");
+            Console.WriteLine($"Quantidade de produtos comprados: {quantidadeDeProdutosComprados}");
+            Console.WriteLine($"Quantidade de notas fiscais: {quantidadeDeNotasFiscais}");
+            Console.WriteLine($"Quantidade de OS: {quantidadeDeOS}");
+            Console.WriteLine($"Produto mais comprado: {produtoMaisComprado}");
+            Console.WriteLine($"Faturamento total: {faturamentoTotal}");
+            Console.WriteLine($"Quantidade de visitas: {quantidadeDeVisitas}");
+            Console.WriteLine();
         }
     }
 

@@ -2,6 +2,8 @@
 
 @inject ApplicationDbContext _context;
 @inject IDialogService DialogService;
+@inject HttpClient Http;
+@inject ISnackbar Snackbar;
 
 @attribute [Authorize]
 
@@ -46,11 +48,23 @@
     {
         try
         {
-            _clientes = await _context.Cliente.ToListAsync();
+            await LoadClients();
         }
         catch (Exception e)
         {
             _clientes = default;
+        }
+    }
+
+    private async Task LoadClients()
+    {
+        try
+        {
+            _clientes = await Http.GetFromJsonAsync<IList<Cliente>>("api/clientes");
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add($"Ocorreu um erro ao coletar os dados {Environment.NewLine} Erro: {ex.Message} {Environment.NewLine} StackTrace: {ex.StackTrace}", Severity.Error);
         }
     }
 
