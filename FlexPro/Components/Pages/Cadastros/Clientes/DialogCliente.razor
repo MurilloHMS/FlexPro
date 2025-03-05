@@ -1,4 +1,4 @@
-@inject ApplicationDbContext _context
+@inject HttpClient Http
 @inject ISnackbar SnackBar
 
 <MudDialog>
@@ -13,16 +13,16 @@
 @code {
     [CascadingParameter]
     private MudDialogInstance MudDialog { get; set; }
-    
+
     [Parameter]
     public string ContentText { get; set; }
-    
+
     [Parameter]
     public string ButtonText { get; set; }
-    
+
     [Parameter]
     public Color Color { get; set; }
-    
+
     [Parameter]
     public Cliente Cliente { get; set; }
 
@@ -30,8 +30,7 @@
     {
         try
         {
-            _context.Cliente.Remove(Cliente);
-            await _context.SaveChangesAsync();
+            await Http.DeleteFromJsonAsync<Cliente>($"api/clientes/{Cliente.Id}");
             SnackBar.Add("Cliente Deletado com Sucesso", Severity.Success);
         }
         catch (Exception e)
@@ -43,4 +42,5 @@
 
     private void Cancel() => MudDialog.Cancel();
 
+    
 }

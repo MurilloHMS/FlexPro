@@ -46,14 +46,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            await LoadClients();
-        }
-        catch (Exception e)
-        {
-            _clientes = default;
-        }
+        await LoadClients();
     }
 
     private async Task LoadClients()
@@ -65,6 +58,7 @@
         catch (HttpRequestException ex)
         {
             Snackbar.Add($"Ocorreu um erro ao coletar os dados {Environment.NewLine} Erro: {ex.Message} {Environment.NewLine} StackTrace: {ex.StackTrace}", Severity.Error);
+            _clientes = default;
         }
     }
 
@@ -76,10 +70,10 @@
 
         if (!result.Canceled)
         {
-            _clientes = await _context.Cliente.ToListAsync();
+            await LoadClients();
         }
     }
-    
+
     private async Task OpendDeleteDialogAsync(Cliente cliente)
     {
         var parametros = new DialogParameters<DialogCliente>
@@ -91,30 +85,30 @@
         };
 
         var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
-        
+
         var dialog = await DialogService.ShowAsync<DialogCliente>("Deletar", parametros, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
-            _clientes = await _context.Cliente.ToListAsync();
+            await LoadClients();
         }
     }
-    
+
     private async Task OpenEditDialogAsync(Cliente cliente)
     {
         var parametros = new DialogParameters<CadastrarCliente>
         {
             {x => x.cliente, cliente}
         };
-        
+
         var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
         var dialog = await DialogService.ShowAsync<CadastrarCliente>("Atualizar Cliente", parametros, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
-            _clientes = await _context.Cliente.ToListAsync();
+            await LoadClients();
         }
     }
     

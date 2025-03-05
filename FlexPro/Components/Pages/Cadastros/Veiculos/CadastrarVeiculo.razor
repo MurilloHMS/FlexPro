@@ -3,7 +3,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
 @inject IDialogService DialogService
-@inject ApplicationDbContext _context
+@inject HttpClient Http
 @inject ISnackbar Snackbar
 
 @attribute [Authorize]
@@ -18,7 +18,7 @@
                     <MudSelect Label="Marca" @bind-Value="veiculo.Marca">
                         @foreach (var marca in marcas)
                         {
-                        <MudSelectItem Value="marca">@marca</MudSelectItem>
+                            <MudSelectItem Value="marca">@marca</MudSelectItem>
                         }
                     </MudSelect>
                     <MudTextField Label="Consumo Urbano (Álcool)" @bind-Value="veiculo.ConsumoUrbanoAlcool" />
@@ -43,7 +43,7 @@
 
     [Parameter] 
     public Veiculo _veiculo { get; set; }
-    
+
     private string[] marcas = 
     {
         "ACURA", "ALFA ROMEO", "AUDI", "BMW", "BUICK", "CADILLAC", "CHEVROLET", 
@@ -71,7 +71,7 @@
 
         if (string.IsNullOrEmpty(value))
             return marcas;
-        
+
         return marcas.Where(x => x.Contains(value, StringComparison.OrdinalIgnoreCase));
     }
 
@@ -81,21 +81,25 @@
         MudDialog.Cancel();
     }
 
-    private void SalvarVeiculo()
+    private async Task SalvarVeiculo()
     {
         try
         {
             if (_veiculo is not null)
             {
-                _context.Veiculo.Update(veiculo);
-                _context.SaveChanges();
-                Snackbar.Add("Veiculo Atualizado com Sucesso!", Severity.Success);
+                var response = await Http.PutAsJsonAsync<Veiculo>($"api/veiculo/{veiculo.Id}", veiculo);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Veiculo Atualizado com Sucesso!", Severity.Success);
+                }
             }
             else
             {
-                _context.Veiculo.Add(veiculo);
-                _context.SaveChanges();
-                Snackbar.Add("Veiculo Cadastrado com Sucesso!", Severity.Success);
+                var response = await Http.PostAsJsonAsync<Veiculo>("api/veiculo", veiculo);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Veiculo Cadastrado com Sucesso!", Severity.Success);
+                }
             }
         }
         catch (Exception e)
