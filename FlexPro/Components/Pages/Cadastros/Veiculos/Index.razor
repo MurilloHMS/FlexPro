@@ -1,11 +1,8 @@
 @page "/veiculos"
-@using System.Collections.Immutable
-@using FlexPro.Data
-@using FlexPro.Models
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.EntityFrameworkCore
+
 @inject IDialogService DialogService
-@inject ApplicationDbContext _context
+@inject HttpClient Http
+@inject ISnackbar Snackbar
 
 @attribute [Authorize]
 
@@ -50,16 +47,22 @@
                 v.Placa.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
                 v.Marca.Contains(_searchString, StringComparison.OrdinalIgnoreCase)
             );
-    
+
     protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
     {
         try
         {
-            veiculos = await _context.Veiculo.ToListAsync();
+            veiculos = await Http.GetFromJsonAsync<IList<Veiculo>>("api/veiculo");
         }
-        catch (Exception)
+        catch (HttpRequestException ex)
         {
-            veiculos = new List<Veiculo>();
+            Snackbar.Add($"Ocorreu um erro ao coletar os dados {Environment.NewLine} Erro: {ex.Message} {Environment.NewLine} StackTrace: {ex.StackTrace}", Severity.Error);
+            veiculos = default;
         }
     }
 
@@ -81,7 +84,7 @@
 
         if (!result.Canceled)
         {
-            veiculos = await _context.Veiculo.ToListAsync(); 
+            await LoadData();
         }
     }
 
@@ -93,7 +96,7 @@
 
         if (!result.Canceled)
         {
-            veiculos = await _context.Veiculo.ToListAsync();
+            await LoadData();
         }
     }
 
@@ -103,14 +106,14 @@
         {
             { x => x._veiculo, veiculo }
         };
-        
+
         var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
         var dialog = await DialogService.ShowAsync<CadastrarVeiculo>("Cadastro de Veículo", parametros, options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
         {
-            veiculos = await _context.Veiculo.ToListAsync();
+            await LoadData();
         }
     }
 }

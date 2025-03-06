@@ -15,6 +15,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         public DbSet<Receita> Receita { get; set; } = default!;
         public DbSet<Revisao> Revisao { get; set; } = default!;
         public DbSet<Produto> Produto { get; set; } = default!;
+        public DbSet<Cliente> Cliente { get; set; } = default!;
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,6 +1,7 @@
 @page "/categorias"
 @inject IDialogService DialogService
-@inject ApplicationDbContext _context
+@inject HttpClient Http
+@inject ISnackbar Snackbar
 
 @attribute [Authorize]
 
@@ -45,14 +46,20 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadData();
+        
+    }
+
+    private async Task LoadData()
+    {
         try
         {
-            Categorias = await _context.Categoria.ToListAsync();
+            Categorias = await Http.GetFromJsonAsync<IList<Categoria>>("api/categoria");
         }
-        catch (Exception e)
+        catch (HttpRequestException ex)
         {
-            Categorias = default!;
-            throw;
+            Snackbar.Add($"Ocorreu um erro ao coletar os dados {Environment.NewLine} Erro: {ex.Message} {Environment.NewLine} StackTrace: {ex.StackTrace}", Severity.Error);
+            Categorias = default;
         }
     }
 
@@ -73,7 +80,7 @@
 
         if (!result.Canceled)
         {
-            Categorias = await _context.Categoria.ToListAsync(); 
+            await LoadData(); 
         }
     }
     
@@ -85,7 +92,7 @@
 
         if (!result.Canceled)
         {
-            Categorias = await _context.Categoria.ToListAsync();
+            await LoadData();
         }
     }
 
@@ -102,7 +109,7 @@
 
         if (!result.Canceled)
         {
-            Categorias = await _context.Categoria.ToListAsync();
+            await LoadData();
         }
     }
 

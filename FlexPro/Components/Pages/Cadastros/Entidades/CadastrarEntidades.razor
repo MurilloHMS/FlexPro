@@ -1,8 +1,5 @@
-@using FlexPro.Data
-@using FlexPro.Models
-@using Microsoft.AspNetCore.Authorization
 @inject IDialogService DialogService
-@inject ApplicationDbContext _context
+@inject HttpClient Http
 @inject ISnackbar Snackbar
 
 @attribute [Authorize]
@@ -26,10 +23,10 @@
     private Entidade Entidade = new Entidade();
     private MudForm form;
     private bool isFormValid;
-    
+
     [CascadingParameter] 
     MudDialogInstance MudDialog { get; set; }
-    
+
     [Parameter]
     public Entidade _entidade { get; set; }
 
@@ -47,18 +44,23 @@
     {
         try
         {
-            if (_entidade == null)
+            if (_entidade != null)
             {
-                await _context.Entidade.AddAsync(Entidade);
-                Snackbar.Add("Entidade cadastrada com sucesso!", Severity.Success);
+                var response = await Http.PutAsJsonAsync<Entidade>($"api/entidade/{Entidade.ID}", Entidade);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Entidade cadastrada com sucesso!", Severity.Success);
+                }
             }
             else
             {
-                _context.Entidade.Update(Entidade);
-                Snackbar.Add("Entidade atualizada com sucesso!", Severity.Success);
-            }
+                var response = await Http.PostAsJsonAsync<Entidade>("api/entidade", Entidade);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Entidade atualizada com sucesso!", Severity.Success);
+                }
 
-            await _context.SaveChangesAsync();
+            }
             MudDialog?.Close(DialogResult.Ok(Entidade));
         }
         catch (Exception e)

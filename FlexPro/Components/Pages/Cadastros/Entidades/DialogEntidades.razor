@@ -1,6 +1,4 @@
-@using FlexPro.Data
-@using FlexPro.Models
-@inject ApplicationDbContext _context
+@inject HttpClient Http
 @inject ISnackbar Snackbar
 
 <MudDialog>
@@ -25,7 +23,7 @@
 
     [Parameter]
     public Color Color { get; set; }
-    
+
     [Parameter]
     public Entidade Entidade { get; set; }
 
@@ -33,8 +31,7 @@
     {
         try
         {
-            _context.Entidade.Remove(Entidade);
-            await _context.SaveChangesAsync();
+            await Http.DeleteAsync($"api/entidade/{Entidade.ID}");
             Snackbar.Add("Entidade Deletada", Severity.Success);
             MudDialog?.Close(DialogResult.Ok(true));
         }

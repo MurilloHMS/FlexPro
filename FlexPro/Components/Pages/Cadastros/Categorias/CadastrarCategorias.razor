@@ -1,5 +1,5 @@
 @inject IDialogService DialogService
-@inject ApplicationDbContext _context
+@inject HttpClient Http
 @inject ISnackbar Snackbar
 
 @attribute [Authorize]
@@ -41,21 +41,26 @@
         MudDialog.Cancel();
     }
 
-    private void SalvarCategorias()
+    private async Task SalvarCategorias()
     {
         try
         {
             if (_categoria is not null)
             {
-                _context.Categoria.Update(Categoria);
-                _context.SaveChanges();
-                Snackbar.Add("Categoria cadastrada com Sucesso!", Severity.Success);
+                var response = await Http.PutAsJsonAsync<Categoria>($"api/categoria/{Categoria.Id}", Categoria);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Categoria cadastrada com Sucesso!", Severity.Success);
+                }
             }
             else
             {
-                _context.Categoria.Add(Categoria);
-                _context.SaveChanges();
-                Snackbar.Add("Categoria cadastrada com Sucesso!", Severity.Success);
+                var response = await Http.PostAsJsonAsync<Categoria>("api/categoria", Categoria);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Categoria cadastrada com Sucesso!", Severity.Success);
+
+                }
             }
         }
         catch (Exception e)
