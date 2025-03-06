@@ -1,10 +1,8 @@
 @page "/entidades"
-@using FlexPro.Data
-@using FlexPro.Models
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.EntityFrameworkCore
+
 @inject IDialogService DialogService
-@inject ApplicationDbContext _context
+@inject HttpClient Http
+@inject ISnackbar Snackbar
 
 @attribute [Authorize]
 
@@ -49,14 +47,20 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadData();
+
+    }
+
+    private async Task LoadData()
+    {
         try
         {
-            entidades = await _context.Entidade.ToListAsync();
+            entidades = await Http.GetFromJsonAsync<IList<Entidade>>("api/entidade");
         }
-        catch (Exception)
+        catch (HttpRequestException ex)
         {
-            entidades = default!;
-            throw;
+            Snackbar.Add($"Ocorreu um erro ao coletar os dados {Environment.NewLine} Erro: {ex.Message} {Environment.NewLine} StackTrace: {ex.StackTrace}", Severity.Error);
+            entidades = default;
         }
     }
 
@@ -77,7 +81,7 @@
 
         if (!result.Canceled)
         {
-            entidades = await _context.Entidade.ToListAsync(); 
+            await LoadData(); 
         }
     }
     
@@ -89,7 +93,7 @@
 
         if (!result.Canceled)
         {
-            entidades = await _context.Entidade.ToListAsync();
+            await LoadData();
         }
     }
     
@@ -106,7 +110,7 @@
 
         if (!result.Canceled)
         {
-            entidades = await _context.Entidade.ToListAsync();
+            await LoadData();
         }
     }
 
