@@ -1,8 +1,5 @@
-@using FlexPro.Data
-@using FlexPro.Models
-@using Microsoft.AspNetCore.Authorization
 @inject IDialogService DialogService
-@inject ApplicationDbContext _context
+@inject HttpClient Http
 @inject ISnackbar Snackbar
 
 @attribute [Authorize]
@@ -37,13 +34,13 @@
     private Funcionarios funcionarios = new Funcionarios();
     private MudForm form;
     private bool isFormValid;
-    
+
     [CascadingParameter]
     private MudDialogInstance MudDialog { get; set; }
-    
+
     [Parameter]
     public Funcionarios _funcionarios { get; set; }
-    
+
     [Parameter]
     public string Tipo { get; set; }
 
@@ -65,21 +62,25 @@
         MudDialog.Cancel();
     }
 
-    private void SalvarFuncionario()
+    private async Task SalvarFuncionario()
     {
         try
         {
             if (_funcionarios is not null)
             {
-                _context.Funcionarios.Update(funcionarios);
-                _context.SaveChanges();
-                Snackbar.Add("Funcionário Atualizado com Sucesso!", Severity.Success);
+                var response = await Http.PutAsJsonAsync<Funcionarios>($"api/funcionario/{funcionarios.Id}", funcionarios);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Funcionário Atualizado com Sucesso!", Severity.Success);
+                }
             }
             else
             {
-                _context.Funcionarios.Add(funcionarios);
-                _context.SaveChanges();
-                Snackbar.Add("Funcionário cadastrado com Sucesso!", Severity.Success);
+                var response = await Http.PostAsJsonAsync<Funcionarios>("api/funcionario/", funcionarios);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Funcionário cadastrado com Sucesso!", Severity.Success);
+                }
             }
         }
         catch (Exception e)

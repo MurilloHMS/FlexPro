@@ -1,10 +1,7 @@
 @page "/funcionarios"
-@using FlexPro.Data
-@using FlexPro.Models
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.EntityFrameworkCore
-@inject ApplicationDbContext _context
+@inject HttpClient Http
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 @attribute [Authorize]
 
@@ -51,14 +48,19 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
         try
         {
-            funcionarios = await _context.Funcionarios.ToListAsync();
+            funcionarios = await Http.GetFromJsonAsync<IList<Funcionarios>>("api/funcionario");
         }
-        catch (Exception e)
+        catch (HttpRequestException ex)
         {
-            funcionarios = default!;
-            throw;
+            Snackbar.Add($"Ocorreu um erro ao coletar os dados {Environment.NewLine} Erro: {ex.Message} {Environment.NewLine} StackTrace: {ex.StackTrace}", Severity.Error);
+            funcionarios = default;
         }
     }
 
@@ -79,7 +81,7 @@
 
         if (!result.Canceled)
         {
-            funcionarios = await _context.Funcionarios.ToListAsync(); 
+            await LoadData(); 
         }
     }
     
@@ -91,7 +93,7 @@
 
         if (!result.Canceled)
         {
-            funcionarios = await _context.Funcionarios.ToListAsync();
+            await LoadData();
         }
     }
 
@@ -108,7 +110,7 @@
 
         if (!result.Canceled)
         {
-            funcionarios = await _context.Funcionarios.ToListAsync();
+            await LoadData();
         }
     }
 
