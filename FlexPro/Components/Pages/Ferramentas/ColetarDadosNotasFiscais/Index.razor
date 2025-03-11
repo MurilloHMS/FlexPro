@@ -1,6 +1,7 @@
 @page "/coletarDadosNotasFiscais"
-@using LoadOptions = System.Xml.Linq.LoadOptions
+@using System.Net.Http.Headers
 
+@inject HttpClient Http
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
 
@@ -113,19 +114,28 @@
     {
         Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
         Snackbar.Add("Iniciando Processamento dos arquivos...");
+
+        var content = new MultipartFormDataContent();
         foreach (var file in _fileNames)
         {
-            var dados = await ProcessarXML(file);
-            if (dados != null)
-            {
-                foreach (var item in dados)
-                {
-                    DadosNFe.Add(item);
-                }
-            }
+            var fileContent = new StreamContent(file.OpenReadStream());
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
+            content.Add(fileContent, "files", file.Name);
         }
 
-        await SalvarDados();
+        var response = await Http.PostAsync("api/ColetarDadosNfe/upload", content);
+        if (response.IsSuccessStatusCode)
+        {
+            var fileBytes = await response.Content.ReadAsByteArrayAsync();
+            var fileName = $"DadosNFe--{DateTime.Now:dd-MM-yyyy}.xlsx";
+            await DownloadFile(fileBytes, fileName);
+            Snackbar.Add("Arquivo Excel gerado com sucesso!", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Erro ao processar os arquivos.", Severity.Error);
+        }
+
     }
 
     private void SetDragClass()
@@ -133,115 +143,6 @@
 
     private void ClearDragClass()
         => _dragClass = DefaultDragClass;
-    
-    private async Task<List<DadosNotasFiscais>> ProcessarXML(IBrowserFile file)
-    {
-        try
-        {
-            using (var stream = file.OpenReadStream())
-            {
-                XDocument xmlDoc = await XDocument.LoadAsync(stream, LoadOptions.None, CancellationToken.None);  
-                XNamespace ns = xmlDoc.Root.GetDefaultNamespace();
-
-                List<DadosNotasFiscais> dadosDaNota = new List<DadosNotasFiscais>();
-                var prodTag = xmlDoc.Descendants(ns + "prod");
-                if (prodTag.Any())
-                {
-
-                    foreach (var item in prodTag)
-                    {
-                        var dados = new DadosNotasFiscais();
-                        var numNfTag = xmlDoc.Descendants(ns + "ide").FirstOrDefault();
-                        if (numNfTag != null)
-                        {
-                            dados.NumeroNota = numNfTag.Element(ns + "nNF")?.Value;
-                            dados.DataNota = DateTime.TryParse(numNfTag.Element(ns + "dhEmi")?.Value, out DateTime dataNota) ? dataNota : default;
-                        }
-
-                        var emitenteTag = xmlDoc.Descendants(ns + "emit").FirstOrDefault();
-                        if (emitenteTag != null)
-                        {
-                            dados.Fornecedor = emitenteTag.Element(ns + "xNome")?.Value;
-                        }
-                        
-                        string produto = item.Element(ns + "xProd")?.Value;
-                        dados.Produto = !string.IsNullOrEmpty(produto) ? produto : default;
-                        
-                        string valorUnitario = item.Element(ns + "vUnCom").Value;
-                        dados.ValorUnitario = !string.IsNullOrEmpty(valorUnitario) && decimal.TryParse(valorUnitario, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal unitResult) ? unitResult : 0m;
-
-                        string cfop = item.Element(ns + "CFOP")?.Value;
-                        dados.CFOP = !string.IsNullOrEmpty(cfop) ? cfop : default;
-
-                        string valorTotalProduto = item.Element(ns + "vProd")?.Value;
-                        dados.ValorTotal = !string.IsNullOrEmpty(valorTotalProduto) && decimal.TryParse(valorTotalProduto, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal valorTotalResult) ? valorTotalResult : 0m;
-                        
-                        dadosDaNota.Add(dados);
-                    }
-                    
-                }
-
-                return dadosDaNota;
-            }
-        }
-        catch (Exception e)
-        {
-            // Aqui você pode adicionar um tratamento de erro mais detalhado, se necessário
-            Snackbar.Add($"Erro ao processar o arquivo XML: {e.Message}", Severity.Error);
-            return null;
-        }
-    }
-
-    private async Task SalvarDados()
-    {
-        if (!DadosNFe.Any())
-        {
-            Snackbar.Add("Nenhuma infomação disponível para salvar", Severity.Warning);
-            return;
-        }
-
-        var outputFolder = Path.Combine(Path.GetTempPath(), "DadosNotasFiscais");
-        if (!Directory.Exists(outputFolder))
-        {
-            Directory.CreateDirectory(outputFolder);
-        }
-
-        string fileName = Path.Combine(outputFolder, $"DadosNFe-{DateTime.Now:dd-MM-yyyy}.xlsx");
-
-        using (var workbook = new XLWorkbook())
-        {
-            var worksheet = workbook.Worksheets.Add("Dados Notas Fiscais");
-
-            worksheet.Cell(1, 1).Value = "Fornecedor";
-            worksheet.Cell(1, 2).Value = "Número NFe";
-            worksheet.Cell(1, 3).Value = "Data Emissão";
-            worksheet.Cell(1, 4).Value = "Produto";
-            worksheet.Cell(1, 5).Value = "Valor Unitário";
-            worksheet.Cell(1, 6).Value = "Valor Total";
-            worksheet.Cell(1, 7).Value = "CFOP";
-
-            int novaLinha = 2;
-
-            foreach (var linha in DadosNFe)
-            {
-                worksheet.Cell(novaLinha, 1).Value = linha.Fornecedor;
-                worksheet.Cell(novaLinha, 2).Value = int.TryParse(linha.NumeroNota,out var numNFe) ? numNFe : default;
-                worksheet.Cell(novaLinha, 3).Value = linha.DataNota;
-                worksheet.Cell(novaLinha, 4).Value = linha.Produto;
-                worksheet.Cell(novaLinha, 5).Value = linha.ValorUnitario;
-                worksheet.Cell(novaLinha, 6).Value = linha.ValorTotal;
-                worksheet.Cell(novaLinha, 7).Value = linha.CFOP;
-
-                novaLinha++;
-            }
-            
-            workbook.SaveAs(fileName);
-        }
-
-        var fileBytes = System.IO.File.ReadAllBytes(fileName);
-
-        await DownloadFile(fileBytes, Path.GetFileName(fileName));
-    }
 
     private async Task DownloadFile(byte[] fileBytes, string fileName)
     {

@@ -1,12 +1,9 @@
 @page "/CalculoTransportadoras"
-@using System.Text
-@using FlexPro.Models
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.Extensions.Primitives
-@using LoadOptions = System.Xml.Linq.LoadOptions
+@using System.Net.Http.Headers
 
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
+@inject HttpClient Http
 
 @attribute [Authorize]
 
@@ -147,36 +144,34 @@
             StateHasChanged();
             
             StringBuilder resultado = new();
-            decimal totalValorPrest = 0m;
+            var content = new MultipartFormDataContent();
 
-            for (int i = 0; i < _fileNames.Count; i++)
+            foreach (var file in _fileNames)
             {
-                if (_fileNames[i].Size > 0)
-                {
-                    using (var stream = _fileNames[i].OpenReadStream())
-                    {
-                        var (resultadoArquivo, valorPrest) = await ProcessarXml(stream);
-                        resultado.Append(resultadoArquivo);
-                        if (i < _fileNames.Count - 1)
-                        {
-                            resultado.Append(" + ");
-                        }
-
-                        resultado.AppendLine();
-                        totalValorPrest += valorPrest;
-                    }
-                }
+                var fileContent = new StreamContent(file.OpenReadStream());
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
+                content.Add(fileContent, "files", file.Name);
             }
 
-            resultado.AppendLine();
-            resultado.AppendLine($"Total: R$ {totalValorPrest}");
-            resultadoDosCalculos = resultado.ToString();
+            var response = await Http.PostAsync("api/calculotransportadoras/calcular", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                resultadoDosCalculos = response.Content.ReadAsStreamAsync().ToString();
+                Snackbar.Add("Dados Processados Com Sucesso!", Severity.Success);
+                dataLoaded = true;
+                visible = false;
+                StateHasChanged();
+
+            }
+            else
+            {
+                resultadoDosCalculos = response.Content.ReadAsStreamAsync().ToString();
+                Snackbar.Add($"Ocorreu um erro ao processar os dados! {response.RequestMessage}", Severity.Error);
+                dataLoaded = true;
+                visible = false;
+            }
             
-            Snackbar.Add("Dados Processados Com Sucesso!", Severity.Success);
-            dataLoaded = true;
-            visible = false;
-            
-            StateHasChanged();
         }
         catch (Exception e)
         {
@@ -184,38 +179,6 @@
             visible = false;
             Snackbar.Add($"Erro ao processar o Arquivo: {e.Message}", Severity.Error);
             StateHasChanged();
-            throw;
-        }
-    }
-    
-    private async Task <(string, decimal)> ProcessarXml(Stream file)
-    {
-        try
-        {
-            XDocument xmldoc = await XDocument.LoadAsync(file, LoadOptions.None, CancellationToken.None);
-            XNamespace ns = xmldoc.Root.GetDefaultNamespace();
-
-            var vPrest = xmldoc.Descendants(ns + "vPrest").FirstOrDefault();
-            var vTPrest = 0m;
-
-            if (vPrest != null)
-            {
-                string? vTPrestString = vPrest.Element(ns + "vTPrest")?.Value;
-                    
-                vTPrest = !string.IsNullOrEmpty(vTPrestString) && decimal.TryParse(vTPrestString, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal vTPrestValue)
-                    ? vTPrestValue
-                    : 0m;
-
-                return ($"R$ {vTPrest} ", vTPrest);
-            }
-            else
-            {
-                return ("", 0m);
-            }
-        }
-        catch (Exception e)
-        {
-            Snackbar.Add($"Erro ao processar o Arquivo: {file} \n\n {e.Message}", Severity.Error);
             throw;
         }
     }
