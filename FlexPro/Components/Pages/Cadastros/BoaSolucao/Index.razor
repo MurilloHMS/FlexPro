@@ -3,8 +3,9 @@
 @using Color = MudBlazor.Color
 
 @inject IDialogService DialogService
-@inject ApplicationDbContext _context
+@inject HttpClient Http
 @inject ISnackbar Snackbar
+@inject ApplicationDbContext _context
 
 @attribute [Authorize]
 
@@ -79,7 +80,7 @@
             </MudDataGrid>
             <div class="d-flex flex-wrap mt-4">
                 <MudSwitch @bind-Value="_showFormulas" Color="Color.Primary">Mostrar Fórmulas</MudSwitch>
-                
+
             </div>
         </MudPaper>
     </MudItem>
@@ -125,9 +126,9 @@
             <MudItem xs="12" sm="4">
                 <MudStack Row="true" Spacing="3">
                     <MudFileUpload T="IReadOnlyList<IBrowserFile>"
-                                   MaximumFileCount="1"
-                                   @ref="@_fileUpload"
-                                   OnFilesChanged="OnInputFileChanged">
+                    MaximumFileCount="1"
+                    @ref="@_fileUpload"
+                    OnFilesChanged="OnInputFileChanged">
                         <ActivatorContent>
                             <MudButton Variant="Variant.Filled" Color="Color.Primary" >Upload Arquivo</MudButton>
                         </ActivatorContent>
@@ -152,7 +153,7 @@
     private string textToDescription { get; set; }
     private bool _showFormulas = false;
     private bool _open = false;
-    
+
     private double QuantidadeLitrosProduzidos { get; set; }
     private double QuantidadeEmbalagens { get; set; }
     private double QuantidadeCaixas { get; set; }
@@ -239,14 +240,14 @@
 
                 decimal mercadoriasEmpregas = produtosBranco + produtosAmarelos;
                 decimal totalCobrado = produtosBranco + produtosCinza;
-                
+
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine($"Valor da mercadoria recebida para industrializacao: {produtosAmarelos:C}");
                 sb.AppendLine();
                 sb.AppendLine($"Valor total das mercadorias empregadas: {mercadoriasEmpregas:C}");
                 sb.AppendLine();
                 sb.AppendLine($"Valor Total Cobrado: R$ {totalCobrado:C}");
-                
+
                 textToDescription = sb.ToString();
             }
         }
@@ -254,7 +255,20 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _receitas = await _context.Receita.ToListAsync();
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            _receitas = await Http.GetFromJsonAsync<List<Receita>>("api/receita");
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add($"Ocorreu um erro ao coletar os dados {Environment.NewLine} Erro: {ex.Message} {Environment.NewLine} StackTrace: {ex.StackTrace}", Severity.Error);
+            _receitas = default;
+        }
     }
 
     private Func<Produto, string> _cellStyleFunc => x =>
@@ -269,17 +283,17 @@
 
         else if (x.MateriaPrima == "Mão de Obra")
             style += "background-color:#e8e8e8";
-        
+
         else if (x.Tipo == "Produto")
             style += "background-color:#a9d08e";
-        
+
         return style;
     };
-    
+
     private void OpenDrawer()
     {
         _open = true;
-        
+
     }
 
     private async Task OpenReceiptDialogAsync()
@@ -289,11 +303,11 @@
         var result = await dialog.Result;
 
         if (!result.Canceled)
-            _receitas = await _context.Receita.ToListAsync();
+            await LoadData();
     }
     private async Task OpenEditReceiptDialogAsync(Receita receita)
     {
-        var buscaReceita = await _context.Receita.Where(r => r.Id == receita.Id).FirstOrDefaultAsync();
+        var buscaReceita = await Http.GetFromJsonAsync<Receita>($"api/receita/{receita.Id}");
         var parametros = new DialogParameters<CadastrarReceitas>
         {
             { x => x.Receita, buscaReceita }
@@ -325,7 +339,7 @@
         try
         {
             _produtos = await _context.Produto.Where(p => p.IdReceita == _receita.Id).ToListAsync();
-            var receitaAtiva = _context.Receita.Where(r => r.Id == _receita.Id).FirstOrDefault();
+            var receitaAtiva = await Http.GetFromJsonAsync<Receita>($"api/receita/{_receita.Id}");
             await CalcularDados(receitaAtiva);
         }
         catch (Exception)

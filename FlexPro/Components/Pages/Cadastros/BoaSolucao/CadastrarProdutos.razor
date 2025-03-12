@@ -1,5 +1,5 @@
 @inject IDialogService DialogService
-@inject ApplicationDbContext _context
+@inject HttpClient Http
 @inject ISnackbar Snackbar
 
 @attribute [Authorize]
@@ -55,7 +55,7 @@
     };
 
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-    
+
     [Parameter]
     public Produto Produto { get; set; }
 
@@ -63,36 +63,47 @@
     {
         if (Produto is not null)
             _produto = Produto;
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
         try
         {
-           _receitas = await _context.Receita.ToListAsync();
+            _receitas = await Http.GetFromJsonAsync<List<Receita>>("api/receita");
         }
-        catch (Exception e)
+        catch (HttpRequestException ex)
         {
-            Snackbar.Add("Ocorreu um erro ao coletar as receitas", Severity.Error);
+            Snackbar.Add($"Ocorreu um erro ao coletar os dados {Environment.NewLine} Erro: {ex.Message} {Environment.NewLine} StackTrace: {ex.StackTrace}", Severity.Error);
+            _receitas = default;
         }
     }
-    
+
     private void CloseDialog()
     {
         MudDialog.Cancel();
     }
 
-    private void SalvarProduto()
+    private async Task SalvarProduto()
     {
         try
         {
             if (Produto is not null)
             {
-                _context.Produto.Update(_produto);
-                _context.SaveChanges();
-                Snackbar.Add("Produto Atualizado com Sucesso!", Severity.Success);
+                var produtoResponse = await Http.PutAsJsonAsync<Produto>($"api/produto/{_produto.Id}", _produto);
+                if (produtoResponse.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Produto Atualizado com Sucesso!", Severity.Success);
+                }
             }
             else
             {
-                _context.Produto.Add(_produto);
-                _context.SaveChanges();
-                Snackbar.Add("Produto Cadastrado com Sucesso!", Severity.Success);
+                var produtoResponse = await Http.PostAsJsonAsync<Produto>("api/produto", _produto);
+                if (produtoResponse.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Produto Cadastrado com Sucesso!", Severity.Success);
+                }
             }
         }
         catch (Exception e)
