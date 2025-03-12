@@ -1,5 +1,5 @@
 @inject IDialogService DialogService
-@inject ApplicationDbContext _context
+@inject HttpClient Http
 @inject ISnackbar Snackbar
 
 @attribute [Authorize]
@@ -27,9 +27,9 @@
     private MudForm form;
     private bool _isFormValid;
     private CultureInfo _ptBR= CultureInfo.GetCultureInfo("pt-BR");
-    
+
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-    
+
     [Parameter]
     public Receita Receita { get; set; }
 
@@ -44,21 +44,25 @@
         MudDialog.Cancel();
     }
 
-    private void SalvarReceitas()
+    private async Task SalvarReceitas()
     {
         try
         {
             if (Receita is not null)
             {
-                _context.Receita.Update(_receita);
-                _context.SaveChanges();
-                Snackbar.Add("Receita Atualizada com Sucesso!", Severity.Success);
+                var response = await Http.PutAsJsonAsync<Receita>($"api/receita/{_receita.Id}", _receita);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Receita Atualizada com Sucesso!", Severity.Success);
+                }
             }
             else
             {
-                _context.Receita.Add(_receita);
-                _context.SaveChanges();
-                Snackbar.Add("Receita Cadastrada com Sucesso!", Severity.Success);
+                var response = await Http.PostAsJsonAsync<Receita>("api/receita", _receita);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Receita Cadastrada com Sucesso!", Severity.Success);
+                }
             }
         }
         catch (Exception e)
