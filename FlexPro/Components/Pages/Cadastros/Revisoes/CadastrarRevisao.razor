@@ -1,10 +1,6 @@
-@using FlexPro.Data
-@using FlexPro.Models
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.EntityFrameworkCore
 @inject IDialogService DialogService
-@inject ApplicationDbContext _context
 @inject ISnackbar Snackbar
+@inject HttpClient Http
 
 <MudDialog>
     <DialogContent>
@@ -49,10 +45,10 @@
     private MudForm form;
     private bool isFormValid;
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-    
+
     [Parameter]
     public Revisao _Revisao { get; set; }
-    
+
     private IEnumerable<Veiculo> _veiculos = new List<Veiculo>();
     private IEnumerable<Entidade> _entidades = new List<Entidade>();
 
@@ -60,7 +56,7 @@
     {
         "TROCA DE ÓLEO", "MANUTENÇÃO", "MANUTENÇÃO ELÉTRICA"
     };
-    
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -69,22 +65,22 @@
             {
                 revisao = _Revisao;
             }
-            
-            _veiculos = await _context.Veiculo.ToListAsync();
-            _entidades = await _context.Entidade.ToListAsync();
+
+            _veiculos = await Http.GetFromJsonAsync<IList<Veiculo>>("api/veiculo");
+            _entidades = await Http.GetFromJsonAsync<IList<Entidade>>("api/entidade");
         }
         catch (Exception e)
         {
             Snackbar.Add($"Ocorreu um erro ao carregar os veiculos e locais:  {e.Message}");
         }
     }
-    
+
     private void CloseDialog()
     {
         MudDialog.Cancel();
     }
 
-    private void Salvar()
+    private async Task Salvar()
     {
         try
         {
@@ -95,17 +91,20 @@
 
             if (_Revisao is not null)
             {
-                _context.Revisao.Update(revisao);
-                _context.SaveChanges();
-                Snackbar.Add("Revisão Atualizada com Sucesso!", Severity.Success);
+                var response = await Http.PutAsJsonAsync<Revisao>($"api/revisao/{revisao.Id}", revisao);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Revisão Atualizada com Sucesso!", Severity.Success);
+                }
             }
             else
             {
-                _context.Revisao.Add(revisao);
-                _context.SaveChanges();
-                Snackbar.Add("Revisão Incluída com Sucesso!", Severity.Success);
+                var response = await Http.PostAsJsonAsync<Revisao>("api/revisao", revisao);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Revisão Incluída com Sucesso!", Severity.Success);
+                }           
             }
-           
         }
         catch (Exception e)
         {
