@@ -1,6 +1,4 @@
-@using FlexPro.Data
-@using FlexPro.Models
-@inject ApplicationDbContext _context
+@inject HttpClient Http
 @inject ISnackbar Snackbar
 
 <MudDialog>
@@ -24,7 +22,7 @@
 
     [Parameter]
     public Color Color { get; set; }
-    
+
     [Parameter]
     public Revisao Revisao { get; set; }
 
@@ -32,9 +30,11 @@
     {
         try
         {
-            _context.Revisao.Remove(Revisao);
-            await _context.SaveChangesAsync();
-            Snackbar.Add("Revisão Deletada com sucesso!", Severity.Success);
+            var response = await Http.DeleteAsync($"api/revisao/{Revisao.Id}");
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Revisão Deletada com sucesso!", Severity.Success);
+            }
         }
         catch (Exception e)
         {

@@ -1,10 +1,7 @@
 @page "/revisoes"
-@using FlexPro.Models
-@using FlexPro.Data
-@using Microsoft.AspNetCore.Authorization
-@using Microsoft.EntityFrameworkCore
 @inject IDialogService DialogService
-@inject ApplicationDbContext _context
+@inject HttpClient Http
+@inject ISnackbar Snackbar
 
 @attribute [Authorize]
 
@@ -54,13 +51,19 @@
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
         try
         {
-            Revisoes = await _context.Revisao.ToListAsync();
+            Revisoes = await Http.GetFromJsonAsync<IList<Revisao>>("api/revisao");
         }
-        catch (Exception)
+        catch (HttpRequestException ex)
         {
-            Revisoes = new List<Revisao>();
+            Snackbar.Add($"Ocorreu um erro ao coletar os dados {Environment.NewLine} Erro: {ex.Message} {Environment.NewLine} StackTrace: {ex.StackTrace}", Severity.Error);
+            Revisoes = default;
         }
     }
     
@@ -81,7 +84,7 @@
 
         if (!result.Canceled)
         {
-            Revisoes = await _context.Revisao.ToListAsync(); 
+            await LoadData();
         }
     }
 
@@ -93,7 +96,7 @@
 
         if (!result.Canceled)
         {
-            Revisoes = await _context.Revisao.ToListAsync();
+            await LoadData();
         }
     }
 
@@ -109,7 +112,7 @@
 
         if (!result.Canceled)
         {
-            Revisoes = await _context.Revisao.ToListAsync();
+            await LoadData();
         }
     }
 
