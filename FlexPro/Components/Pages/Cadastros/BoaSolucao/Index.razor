@@ -5,7 +5,6 @@
 @inject IDialogService DialogService
 @inject HttpClient Http
 @inject ISnackbar Snackbar
-@inject ApplicationDbContext _context
 
 @attribute [Authorize]
 
@@ -338,7 +337,7 @@
     {
         try
         {
-            _produtos = await _context.Produto.Where(p => p.IdReceita == _receita.Id).ToListAsync();
+            _produtos = await Http.GetFromJsonAsync<List<Produto>>($"api/produto/receitas/{_receita.Id}");
             var receitaAtiva = await Http.GetFromJsonAsync<Receita>($"api/receita/{_receita.Id}");
             await CalcularDados(receitaAtiva);
         }
