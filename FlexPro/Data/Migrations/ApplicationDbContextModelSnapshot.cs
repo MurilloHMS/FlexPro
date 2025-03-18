@@ -140,7 +140,7 @@ namespace FlexPro.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Abastecimento");
+                    b.ToTable("Abastecimento", (string)null);
                 });
 
             modelBuilder.Entity("FlexPro.Models.Categoria", b =>
@@ -157,7 +157,7 @@ namespace FlexPro.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categoria");
+                    b.ToTable("Categoria", (string)null);
                 });
 
             modelBuilder.Entity("FlexPro.Models.Cliente", b =>
@@ -186,7 +186,7 @@ namespace FlexPro.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Cliente");
+                    b.ToTable("Cliente", (string)null);
                 });
 
             modelBuilder.Entity("FlexPro.Models.Entidade", b =>
@@ -203,7 +203,7 @@ namespace FlexPro.Migrations
 
                     b.HasKey("ID");
 
-                    b.ToTable("Entidade");
+                    b.ToTable("Entidade", (string)null);
                 });
 
             modelBuilder.Entity("FlexPro.Models.Funcionarios", b =>
@@ -235,7 +235,7 @@ namespace FlexPro.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Funcionarios");
+                    b.ToTable("Funcionarios", (string)null);
                 });
 
             modelBuilder.Entity("FlexPro.Models.Produto", b =>
@@ -275,7 +275,7 @@ namespace FlexPro.Migrations
 
                     b.HasIndex("IdReceita");
 
-                    b.ToTable("Produto");
+                    b.ToTable("Produto", (string)null);
                 });
 
             modelBuilder.Entity("FlexPro.Models.Receita", b =>
@@ -301,7 +301,7 @@ namespace FlexPro.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Receita");
+                    b.ToTable("Receita", (string)null);
                 });
 
             modelBuilder.Entity("FlexPro.Models.Revisao", b =>
@@ -345,7 +345,7 @@ namespace FlexPro.Migrations
 
                     b.HasIndex("VeiculoId");
 
-                    b.ToTable("Revisao");
+                    b.ToTable("Revisao", (string)null);
                 });
 
             modelBuilder.Entity("FlexPro.Models.Veiculo", b =>
@@ -382,7 +382,7 @@ namespace FlexPro.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Veiculo");
+                    b.ToTable("Veiculo", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
