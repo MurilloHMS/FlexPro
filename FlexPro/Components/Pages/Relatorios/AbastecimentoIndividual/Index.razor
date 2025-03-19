@@ -1,6 +1,6 @@
 @page "/Relatorios/Abastecimento/Individual/{Data}"
 
-@inject ApplicationDbContext _context
+@inject HttpClient Http
 @inject NavigationManager Navigation
 @inject AbastecimentoService AbastecimentoService
 
@@ -36,7 +36,7 @@
 
         if (DataConvertida != DateTime.MinValue)
         {
-            resultado = await AbastecimentoService.CalcularAbastecimentoIndividual(DataConvertida);
+            resultado = await Http.GetFromJsonAsync<string>($"api/abastecimento/Calcular/Individual/{DataConvertida}");
         }
     }
 }
