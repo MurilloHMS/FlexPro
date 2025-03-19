@@ -1,4 +1,3 @@
-using Index = FlexPro.Components.Pages.Dashboards.Veiculos.Index;
 
 namespace FlexPro.Models;
 

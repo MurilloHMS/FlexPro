@@ -1,11 +1,7 @@
 @page "/Relatorios/Abastecimento/Geral/{Data}"
-@using System.Text
-@using Microsoft.EntityFrameworkCore
-@using FlexPro.Services
-@using FlexPro.Data
 
 @inject NavigationManager Navigation
-@inject ApplicationDbContext _context
+@inject HttpClient Http
 @inject AbastecimentoService AbastecimentoService
 
 <MudText Typo="Typo.h3" Align="Align.Center">Métricas do relatório</MudText>
@@ -35,7 +31,7 @@
 
         if (DataConvertida != DateTime.MinValue)
         {
-            resultado = await AbastecimentoService.CalcularAbastecimentoGeral(DataConvertida);
+            resultado = await Http.GetFromJsonAsync<string>($"api/abastecimento/calcular/geral/{DataConvertida}");
         }
     }
 }

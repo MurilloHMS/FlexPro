@@ -99,6 +99,8 @@
             }
             else
             {
+                var receita = await Http.GetFromJsonAsync<Receita>($"api/receita/{_produto.IdReceita}");
+                _produto.Receita = receita;
                 var produtoResponse = await Http.PostAsJsonAsync<Produto>("api/produto", _produto);
                 if (produtoResponse.IsSuccessStatusCode)
                 {

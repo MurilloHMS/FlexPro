@@ -1,7 +1,7 @@
 @page "/consulta/veiculo"
 
 @inject ISnackbar Snackbar
-@inject ApplicationDbContext _context
+@inject HttpClient Http
 
 
 <MudText Typo="Typo.h3" Align="Align.Center">Consulta de Veículos</MudText>
@@ -23,7 +23,7 @@
         <MudText Label="Dados do Veiculo"/>
         <MudSpacer/>
         <MudTextField @bind-Value="_searchString" Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true"
-                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
     <Columns>
         <PropertyColumn Property="x => x.Data" Title="Data da Revisão" Sortable="true" Filterable="true" Format="dd/MM/yyyy"/>
@@ -31,7 +31,7 @@
         <PropertyColumn Property="x => x.NotaFiscal" Title="Nota Fiscal" Sortable="true" Filterable="true"/>
         <PropertyColumn Property="x => x.Tipo" Title="Tipo de Serviço" Sortable="true" Filterable="true"/>
         <PropertyColumn Property="x => x.Motorista" Title="Motorista" Sortable="true" Filterable="true"/>
-        
+
     </Columns>
     <PagerContent>
         <MudDataGridPager T="Revisao" />
@@ -57,7 +57,8 @@
     {
         try
         {
-            _veiculos = await _context.Veiculo.ToListAsync();
+            var vehicles = await Http.GetFromJsonAsync<List<Veiculo>>("api/Veiculo");
+            _veiculos = vehicles;
         }
         catch (Exception e)
         {
@@ -71,7 +72,8 @@
     {
         try
         {
-            _revisoes = await _context.Revisao.Where(r => r.VeiculoId == _veiculo.Id).ToListAsync();
+            _revisoes = await Http.GetFromJsonAsync<List<Revisao>>($"api/Revisao/Veiculo/{_veiculo.Id}");
+
         }
         catch (Exception e)
         {
