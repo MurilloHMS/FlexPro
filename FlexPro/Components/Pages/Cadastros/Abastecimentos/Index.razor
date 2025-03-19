@@ -1,7 +1,8 @@
 @page "/abastecimentos"
+@using System.Net.Http.Headers
 
 @inject IDialogService DialogService
-@inject ApplicationDbContext _Context
+@inject HttpClient Http
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
 
@@ -125,22 +126,26 @@
         _isValid = false;
     }
 
-    protected override async void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         try
         {
             dataLoaded = false;
             visible = true;
-            _abastecimentos = _Context.Abastecimento.ToList();
-            dataLoaded = true;
-            visible = false;
+            List<Abastecimento> listaDeAbastecimentos = await Http.GetFromJsonAsync<List<Abastecimento>>("api/abastecimento");
+            _abastecimentos = listaDeAbastecimentos;
         }
         catch (Exception e)
         {
             Snackbar.Add($"Ocorreu um erro ao coletar os dados de abastecimento {e.Message}");
-            throw;
+        }
+        finally
+        {
+            dataLoaded = true;
+            visible = false;
         }
     }
+
 
     private async Task ImportarDados()
     {
@@ -148,31 +153,28 @@
         visible = true;
         if (_files.Any())
         {
+            Snackbar.Add("Iniciando processamento dos dados...", Severity.Info);
+            var content = new MultipartFormDataContent();
             var file = _files.First();
-            var dadosAbastecimento = await ColetarDadosAbastecimento(file);
-
-            if (dadosAbastecimento != null && dadosAbastecimento.Any())
+            if(file != null)
             {
-                foreach (var abastecimento in dadosAbastecimento)
-                {
-                    var departamento = _Context.Funcionarios.FirstOrDefault(f => f.Nome.ToUpper().Contains(abastecimento.NomeDoMotorista.ToUpper()));
-                    abastecimento.Departamento = departamento != null ? departamento.Departamento : "Sem Departamento";
-                }
-                try
-                {
-                    // _abastecimentos = dadosAbastecimento;
-                    await _Context.Abastecimento.AddRangeAsync(dadosAbastecimento);
-                    await _Context.SaveChangesAsync();
-                }
-                catch (Exception e)
-                {
-                    Snackbar.Add($"Ocorreu um erro ao salvar os dados de abastecimento {e.Message}");
-                }
-                                
-                _abastecimentos = await _Context.Abastecimento.ToListAsync();
-                Snackbar.Add("Dados abasteciento preenchidos com sucesso", Severity.Success);
-                _files.Clear();
+                var fileContent = new StreamContent(file.OpenReadStream());
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
+
+                content.Add(fileContent, "file", file.Name);
             }
+
+            var response = await Http.PostAsync("api/abastecimento/upload", content);
+            if (response.IsSuccessStatusCode)
+            {
+                _abastecimentos = await response.Content.ReadFromJsonAsync<List<Abastecimento>>();
+                Snackbar.Add("Dados processados com sucesso!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add($"Ocorreu um erro, Status code: {response.StatusCode} error: {response.RequestMessage}");
+            }
+
         }
         else
         {
