@@ -1,0 +1,40 @@
+@page "/Relatorios/Abastecimento/Setor/{Data}"
+
+@inject NavigationManager Navigation
+@inject HttpClient Http
+
+@attribute [Authorize]
+
+<MudText Typo="Typo.h3" Align="Align.Center">Métricas do relatório Setores</MudText>
+
+<MudTextField T="string" Label="Dados para o relatório" Variant="Variant.Outlined" Text="@resultado" Lines="30"/>
+
+@code {
+    private string? resultado;
+    
+    [Parameter]
+    public string Data { get; set; }
+
+    public DateTime DataConvertida;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (string.IsNullOrEmpty(Data))
+        {
+            DataConvertida = DateTime.MinValue;
+        }
+        else if (DateTime.TryParse(Data, out var data))
+        {
+            DataConvertida = data;
+        }
+        else
+        {
+            DataConvertida = DateTime.MinValue;
+        }
+
+        if (DataConvertida != DateTime.MinValue)
+        {
+            resultado = await Http.GetFromJsonAsync<string>($"api/abastecimento/calcular/setor/{DataConvertida}");
+        }
+    }
+}

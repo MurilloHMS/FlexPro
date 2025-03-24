@@ -1,0 +1,55 @@
+﻿@page "/Account/login"
+
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>Log In</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true" Align="Align.Center">Login</MudText>
+
+<MudGrid Justify="Justify.Center">
+    <MudItem md="6">
+        <StatusMessage Message="Credenciais inválidas!"/>
+        <EditForm Model="loginModel" method="post" OnValidSubmit="HandleLogin" FormName="login">
+            <DataAnnotationsValidator/>
+            <MudText GutterBottom="true" Typo="Typo.body1">Use uma conta Proauto para conectar</MudText>
+            <MudGrid>
+                <MudItem md="12">
+                    <MudStaticTextField For="@(() => loginModel.Username)" @bind-Value="loginModel.Username"
+                                        Label="Email" Placeholder="name@example.com"
+                                        UserAttributes="@(new() { { "autocomplete", "true" }, { "aria-required", "true" } })"/>
+                </MudItem>
+                <MudItem md="12">
+                    <MudStaticTextField For="@(() => loginModel.Password)" @bind-Value="loginModel.Password"
+                                        Label="Senha" InputType="InputType.Password" Placeholder="Senha"
+                                        UserAttributes="@(new() { { "autocomplete", "current-password" }, { "aria-required", "true" } })"/>
+                </MudItem>
+                <MudItem md="12">
+                    <MudStaticButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="false" FormAction="FormAction.Submit">Login</MudStaticButton>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+
+    private async Task HandleLogin()
+    {
+        var token = await AuthService.Login(loginModel);
+
+        if (!string.IsNullOrEmpty(token))
+        {
+            (AuthenticationStateProvider as ApiAuthenticationStateProvider)?.MarkUserAsAuthenticated(token);
+
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Login falhou! Verifique suas credenciais.");
+        }
+    }
+}

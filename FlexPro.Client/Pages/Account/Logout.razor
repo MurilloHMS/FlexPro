@@ -1,0 +1,22 @@
+﻿@page "/Account/Logout"
+
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject AuthService AuthService
+
+<h1>teste</h1>
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await LogOut();
+    }
+
+    private async Task LogOut()
+    {
+        AuthService.Logout();
+        (AuthenticationStateProvider as ApiAuthenticationStateProvider)?.MarkUserAsLoggedOut();
+
+        // Redireciona para a página de login
+        NavigationManager.NavigateTo("/Account/Login", true);
+    }
+}

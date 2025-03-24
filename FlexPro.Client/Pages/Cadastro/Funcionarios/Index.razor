@@ -1,0 +1,117 @@
+@page "/funcionarios"
+@inject HttpClient Http
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<PageTitle>Funcionários</PageTitle>
+
+<MudText Typo="Typo.h2" Align="Align.Center">Funcionários</MudText>
+<br><br><br>
+<MudDataGrid Items="@funcionariosFiltrados" T="Funcionarios" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true" Virtualize>
+    <ToolBarContent>
+        <MudButton @onclick="@(() => OpenDialogAsync())" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" >Cadastrar</MudButton>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" class="mt-0"/>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Nome" Title="Nome" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Departamento" Title="Departamento" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Hierarquia" Title="Hierarquia" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Gerente" Title="Gerente" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Email" Title="E-Mail" Sortable="true" Filterable="true"/>
+        <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
+            <CellTemplate>
+                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenEditDialogAsync(@context.Item))"/>
+                <MudSpacer/>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => ApagarFuncionario(@context.Item))"/>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Funcionarios"/>
+    </PagerContent>
+</MudDataGrid>
+@code {
+    private IEnumerable<Funcionarios> funcionarios = new List<Funcionarios>();
+    private string _searchString = "";
+
+    private IEnumerable<Funcionarios> funcionariosFiltrados => 
+        string.IsNullOrWhiteSpace(_searchString)
+        ? funcionarios
+        : funcionarios.Where(f =>
+            f.Nome.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+            f.Departamento.Contains(_searchString, StringComparison.OrdinalIgnoreCase)
+            );
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            funcionarios = await Http.GetFromJsonAsync<IList<Funcionarios>>("api/funcionario");
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add($"Ocorreu um erro ao coletar os dados {Environment.NewLine} Erro: {ex.Message} {Environment.NewLine} StackTrace: {ex.StackTrace}", Severity.Error);
+            funcionarios = default;
+        }
+    }
+
+    private async Task ApagarFuncionario(Funcionarios funcionario)
+    {
+        var parametros = new DialogParameters<DialogFuncionarios>
+        {
+            { x => x.ContentText, "Tem certeza que você quer deletar este registro?, este processo não pode ser revertido!" },
+            { x => x.ButtonText, "Deletar" },
+            { x => x.Color, Color.Error },
+            { x => x.Funcionarios, funcionario }
+        };
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = await DialogService.ShowAsync<DialogFuncionarios>("Deletar", parametros, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData(); 
+        }
+    }
+    
+    private async Task OpenDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarFuncionario>("Cadastro de Funcionários", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+    private async Task OpenEditDialogAsync(Funcionarios funcionario)
+    {
+        var parametros = new DialogParameters<CadastrarFuncionario>
+        {
+            {x => x._funcionarios, funcionario}
+        };
+        
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarFuncionario>("Atualizar Funcionário", parametros, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+}

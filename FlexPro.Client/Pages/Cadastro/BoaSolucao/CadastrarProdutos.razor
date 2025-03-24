@@ -1,0 +1,118 @@
+@inject IDialogService DialogService
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="12">
+                <MudForm @ref="form" @bind-IsValid="_isFormValid" Spacing="5">
+                    <MudTextField Label="Código Sistema" @bind-Value="_produto.CodigoSistema" Required/>
+                    <MudTextField Label="Descrição" @bind-Value="_produto.Descricao" Required/>
+                    <MudTextField Label="Quantidade Fórmula" @bind-Value="_produto.QuantidadeFormula" T="decimal" Required/>
+                    <MudSelect Label="Estoque" @bind-Value="_produto.MateriaPrima" Required>
+                        @foreach (var item in _materiaPrima)
+                        {
+                            <MudSelectItem Value="item">@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudSelect Label="Tipo de Produto" @bind-Value="_produto.Tipo" Required>
+                        @foreach (var item in _tipoDeProduto)
+                        {
+                            <MudSelectItem Value="item">@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudSelect Label="Receita" @bind-Value="_produto.IdReceita" Required>
+                        @foreach(var item in _receitas)
+                        {
+                            <MudSelectItem Value="item.Id">@item.Nome</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudForm>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton OnClick="SalvarProduto" Color="Color.Primary" Disabled="!_isFormValid">Salvar</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    private Produto _produto = new Produto();
+    private List<Receita> _receitas = new List<Receita>();
+    private MudForm form;
+    private bool _isFormValid;
+    private string[] _materiaPrima =
+    {
+        "Boa Solução", "Mão de Obra", "Proauto"
+    };
+
+    private string[] _tipoDeProduto =
+    {
+        "Mão de Obra", "Embalagem", "Caixa", "Produto","Obra Prima"
+    };
+
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public Produto Produto { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Produto is not null)
+            _produto = Produto;
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            _receitas = await Http.GetFromJsonAsync<List<Receita>>("api/receita");
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add($"Ocorreu um erro ao coletar os dados {Environment.NewLine} Erro: {ex.Message} {Environment.NewLine} StackTrace: {ex.StackTrace}", Severity.Error);
+            _receitas = default;
+        }
+    }
+
+    private void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task SalvarProduto()
+    {
+        try
+        {
+            if (Produto is not null)
+            {
+                var produtoResponse = await Http.PutAsJsonAsync<Produto>($"api/produto/{_produto.Id}", _produto);
+                if (produtoResponse.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Produto Atualizado com Sucesso!", Severity.Success);
+                }
+            }
+            else
+            {
+                var receita = await Http.GetFromJsonAsync<Receita>($"api/receita/{_produto.IdReceita}");
+                _produto.Receita = receita;
+                var produtoResponse = await Http.PostAsJsonAsync<Produto>("api/produto", _produto);
+                if (produtoResponse.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Produto Cadastrado com Sucesso!", Severity.Success);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Ocorreu um erro ao cadastrar o produto: {e.Message}", Severity.Error);
+        }
+        MudDialog?.Close(DialogResult.Ok(_produto));
+    }
+
+}

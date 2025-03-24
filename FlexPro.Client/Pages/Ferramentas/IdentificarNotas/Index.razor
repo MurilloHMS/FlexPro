@@ -1,0 +1,236 @@
+@page "/RenomearNotas"
+
+@inject ISnackbar Snackbar
+@inject  IJSRuntime JSRuntime
+
+<MudText Typo="Typo.h4" Align="Align.Center">Renomear Notas Via Planilha</MudText>
+
+<MudStack>
+    <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                   Accept=".xlsx,.pdf"
+                   MaximumFileCount="1000"
+                   @ref="@_fileUpload"
+                   OnFilesChanged="OnInputFileChanged"
+                   AppendMultipleFiles
+                   Hidden="false"
+                   InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
+                   InputStyle="opacity:0"
+                   tabindex="-1"
+                   @ondrop="@ClearDragClas"
+                   @ondragenter="@SetDragClass"
+                   @ondragleave="@ClearDragClas"
+                   @ondragend="@ClearDragClas">
+        <ActivatorContent>
+            <MudPaper Height="300px"
+                      Outlined="true"
+                      Class="@_dragClass">
+                <MudText Typo="Typo.h6">
+                    arraste ou solte os arquivos aqui ou clique para selecionar
+                </MudText>
+                @if (_fileNames != null && _fileNames.Any())
+                {
+                    @for (int i = 0; i < 20 && i < _fileNames.Count; i++)
+                    {
+                        <MudChip T="string"
+                                 Color="Color.Dark"
+                                 Text="@_fileNames[i].Name"
+                                 tabindex="-1"/>
+                    }
+                }
+            </MudPaper>
+        </ActivatorContent>
+    </MudFileUpload>
+    <MudToolBar Gutters="@false"
+                Class="relative d-flex justify-end gap-4">
+        <MudButton Color="Color.Primary"
+                   OnClick="@OpenFilePickerAsync"
+                   Variant="Variant.Filled">
+            Selecionar Arquivos
+        </MudButton>
+        <MudButton Color="Color.Primary"
+                   Disabled="@(!_fileNames.Any())"
+                   OnClick="@Upload"
+                   Variant="Variant.Filled">
+            Renomear Notas Fiscais
+        </MudButton>
+        <MudButton Color="Color.Error"
+                   Disabled="@(!_fileNames.Any())"
+                   OnClick="@ClearAsync"
+                   Variant="Variant.Filled">
+            Apagar Arquivos
+        </MudButton>
+    </MudToolBar>
+</MudStack>
+
+<script>
+    function downloadFileFromStream(fileName, fileBase64) {
+        const link = document.createElement('a');
+        link.href = 'data:application/zip;base64,' + fileBase64; 
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+
+@code {
+    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+    private string _dragClass = DefaultDragClass;
+    private readonly List<IBrowserFile> _fileNames = new();
+    private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
+
+    private List<DadosNota> dados = new();
+
+    private void SetDragClass() => _dragClass = $"{DefaultDragClass} mud-border-primary";
+    private void ClearDragClas() => _dragClass = DefaultDragClass;
+
+    private async Task ClearAsync()
+    {
+        await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
+        _fileNames.Clear();
+        ClearDragClas();
+    }
+
+    private Task OpenFilePickerAsync() => _fileUpload?.OpenFilePickerAsync() ?? Task.CompletedTask;
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        ClearDragClas();
+        var files = e.GetMultipleFiles(1000);
+        Snackbar.Add($"Obtendo Arquivos");
+        foreach (var file in files)
+        {
+            var extension = Path.GetExtension(file.Name)?.ToLower();
+            if (extension is".pdf" or ".xlsx")
+            {
+                _fileNames.Add(file);
+            }
+            else
+            {
+                if (extension is "xls")
+                    Snackbar.Add($"Arquivo XlS não Aceito para leitura: {file.Name}", Severity.Warning);
+                else
+                    Snackbar.Add($"Arquivo inválido ignorado: {file.Name}", Severity.Warning);
+            }
+        }
+    }
+
+
+    private async Task Upload()
+    {
+        foreach (var file in _fileNames)
+        {
+            if (Path.GetExtension(file.Name).Contains("xlsx"))
+            {
+                dados = await ObterIndices(file);
+            }
+        }
+        foreach (var file in _fileNames)
+        {
+            if (Path.GetExtension(file.Name).Contains("pdf"))
+            {
+                var tempFilePath = Path.Combine(Path.GetTempPath(), file.Name);
+                await using var stream = file.OpenReadStream();
+                await using var fileStream = new FileStream(tempFilePath, FileMode.Create);
+                await stream.CopyToAsync(fileStream);
+                AlterarNomesNotas(tempFilePath);
+            }
+        }
+
+        await Download();
+    }
+
+    private async Task Download()
+    {
+        Snackbar.Add($"iniciando Download dos Arquivos...");
+        var outputFolder = Path.Combine(Path.GetTempPath(), "NotasRenomeadas");
+        if (!Directory.Exists(outputFolder)) return;
+
+        var tempZipPath = Path.Combine(Path.GetTempPath(), "PDF_Renomeados.zip");
+        if (File.Exists(tempZipPath)) File.Delete(tempZipPath);
+
+        System.IO.Compression.ZipFile.CreateFromDirectory(outputFolder, tempZipPath);
+
+        var bytes = await File.ReadAllBytesAsync(tempZipPath);
+        var base64File = Convert.ToBase64String(bytes);
+
+        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", "PDF_Renomeados.zip", base64File);
+
+        Directory.Delete(outputFolder, true);
+        File.Delete(tempZipPath);
+    }
+
+   
+    private async Task AlterarNomesNotas(string filePath)
+    {
+        if (dados == null || !dados.Any()) return;
+
+        var outputFolder = Path.Combine(Path.GetTempPath(), "NotasRenomeadas");
+        if (!Directory.Exists(outputFolder))
+        {
+            Directory.CreateDirectory(outputFolder);
+        }
+
+        var nomeDaNota = Path.GetFileNameWithoutExtension(filePath);
+
+        foreach (var nota in dados)
+        {
+            if (nomeDaNota.Equals(nota.Identificador, StringComparison.OrdinalIgnoreCase))
+            {
+                var novoCaminho = Path.Combine(outputFolder, $"NFe_{nota.NumeroNFe}.pdf");
+                
+                File.Copy(filePath, novoCaminho, overwrite: true);
+                Snackbar.Add($"Nota renomeada: {novoCaminho}", Severity.Success);
+                return; 
+            }
+        }
+
+        // Snackbar.Add($"Nenhuma correspondência encontrada para: {filePath}", Severity.Warning);
+    }
+
+    
+    private async Task<List<DadosNota>> ObterIndices(IBrowserFile file)
+    {
+        Snackbar.Add("Iniciando coleta dos dados", Severity.Info);
+        try
+        {
+            using (var stream = new MemoryStream())
+            {
+                await file.OpenReadStream().CopyToAsync(stream);
+                stream.Position = 0;
+                
+                using (XLWorkbook wb = new (stream))
+                {
+                    var planilha = wb.Worksheet(1);
+                    var fileData = planilha.RowsUsed()
+                        .Skip(1)
+                        .Select(row => new DadosNota
+                        {
+                            Identificador = row.Cell(1).TryGetValue<string>(out var identificador) ? identificador : null,
+                            NumeroNFe = row.Cell(2).TryGetValue<string>(out var numeroNFe) ? numeroNFe : null
+                        }).ToList();
+
+                    lock (dados)
+                    {
+                        dados.AddRange(fileData);
+                    }
+                }
+            }
+
+            return dados;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
+
+    private class DadosNota
+    {
+        public string Identificador { get; set; }
+        public string NumeroNFe { get; set; }
+        
+    }
+}

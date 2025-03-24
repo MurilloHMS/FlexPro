@@ -1,0 +1,74 @@
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject NavigationManager Navigation
+
+@attribute [Authorize]
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="12">
+                <MudForm @ref="form" @bind-IsValid="isFormValid">
+                    <MudDatePicker Label="Selecione o mês para puxar os dados" @bind-Date="_date" OpenTo="OpenTo.Year" FixDay="1" DateFormat="MMMM/yyyy"/>
+                </MudForm>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton OnClick="EmitirRelatório" Color="Color.Primary" Disabled="!isFormValid">Emitir</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    private MudForm form;
+    private bool isFormValid;
+    private DateTime? _date;
+    
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    
+    [Parameter] 
+    public string tipo { get; set; }
+    
+    [Parameter]
+    public bool isDownload { get; set;}
+
+    private void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    private void EmitirRelatório()
+    {
+        try
+        {
+            if (_date != null)
+            {
+                string dataFinalFormatada = _date.Value.ToString("yyyy-MM-dd");
+                switch (tipo)
+                {
+                    case "Geral":
+                        Navigation.NavigateTo($"/Relatorios/Abastecimento/Geral/{dataFinalFormatada}");
+                        break;
+                    case "Setor":
+                        Navigation.NavigateTo($"/Relatorios/Abastecimento/Setor/{dataFinalFormatada}");
+                        break;
+                    case "Individual":
+                        Navigation.NavigateTo($"/Relatorios/Abastecimento/Individual/{dataFinalFormatada}");
+                        break;
+                }
+            }
+            else
+            {
+                Snackbar.Add("Por favor, selecione um intervalo de datas válido.", Severity.Warning);
+            }
+            
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Ocorreu um erro ao Emitir o Relatório {tipo}: {e.Message}", Severity.Error);
+            throw;
+        }
+        MudDialog?.Close();
+    }
+    
+}

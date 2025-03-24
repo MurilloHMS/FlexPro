@@ -1,0 +1,74 @@
+@inject IDialogService DialogService
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="12">
+                <MudForm @ref="form" @bind-IsValid="_isFormValid" Spacing="5">
+                    <MudTextField Label="Nome" @bind-Value="_receita.Nome" Required/>
+                    <MudNumericField Label="Embalagem em Litros(Ex: 200 litros => 200 ou 700ml => 0,7" T="double" @bind-Value="_receita.Embalagem" Format="F1" Required/>
+                    <MudNumericField label="Valor da mão de obra" Format="N2" Culture="@_ptBR" T="decimal" @bind-Value="_receita.ValorMaoDeObra" Adornment="Adornment.Start" AdornmentText="R$" Required/>
+                    <MudNumericField Label="Quantidade de Caixas" @bind-Value="@_receita.Caixas" T="double" Format="F"></MudNumericField>
+                </MudForm>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton OnClick="SalvarReceitas" Color="Color.Primary" Disabled="!_isFormValid">Salvar</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    private Receita _receita = new Receita();
+    private MudForm form;
+    private bool _isFormValid;
+    private CultureInfo _ptBR= CultureInfo.GetCultureInfo("pt-BR");
+
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public Receita Receita { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (Receita is not null)
+            _receita = Receita;
+    }
+
+    private void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task SalvarReceitas()
+    {
+        try
+        {
+            if (Receita is not null)
+            {
+                var response = await Http.PutAsJsonAsync<Receita>($"api/receita/{_receita.Id}", _receita);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Receita Atualizada com Sucesso!", Severity.Success);
+                }
+            }
+            else
+            {
+                var response = await Http.PostAsJsonAsync<Receita>("api/receita", _receita);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Receita Cadastrada com Sucesso!", Severity.Success);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Ocorreu um erro ao cadastrar a receita: {e.Message}", Severity.Error);
+        }
+        MudDialog?.Close(DialogResult.Ok(_receita));
+    }
+}

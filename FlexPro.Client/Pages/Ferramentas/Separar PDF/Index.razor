@@ -1,0 +1,176 @@
+@page "/separarPDF"
+@using Microsoft.AspNetCore.Authorization
+@using System.Net.Http.Headers
+
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+
+@attribute [Authorize]
+
+<MudText Typo="Typo.h4">Separar PDF</MudText>
+
+<MudStack>
+    <MudFileUpload T="IBrowserFile"
+                   @ref="@_fileUpload"
+                   OnFilesChanged="OnInputFileChanged"
+                   Hidden="@false"
+                   InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
+                   InputStyle="opacity:0"
+                   tabindex="-1"
+                   Accept=".pdf"
+                   @ondrop="@ClearDragClass"
+                   @ondragenter="@SetDragClass"
+                   @ondragleave="@ClearDragClass"
+                   @ondragend="@ClearDragClass">
+        <ActivatorContent>
+            <MudPaper Height="300px"
+                      Outlined="true"
+                      Class="@_dragClass">
+                <MudText Typo="Typo.h6">
+                    Arraste e solte o arquivo aqui ou clique para selecionar um arquivo
+                </MudText>
+                @foreach (var file in _fileNames)
+                {
+                    <MudChip T="string"
+                    Color="Color.Dark"
+                    Text="@file.Name"
+                    tabindex="-1" />
+                }
+            </MudPaper>
+        </ActivatorContent>
+    </MudFileUpload>
+    <MudToolBar Gutters="@false"
+    Class="relative d-flex justify-end gap-4">
+        <MudButton Color="Color.Tertiary"
+        OnClick="@OpenFilePickerAsync"
+        Variant="Variant.Filled">
+            Selecionar arquivo
+        </MudButton>
+        <MudButton Color="Color.Primary"
+        Disabled="@(!_fileNames.Any())"
+        OnClick="@Upload"
+        Variant="Variant.Filled">
+            Separar Arquivos
+        </MudButton>
+        <MudButton Color="Color.Error"
+        Disabled="@(!_fileNames.Any())"
+        OnClick="@LimparAsync"
+        Variant="Variant.Filled">
+            Apagar
+        </MudButton>
+    </MudToolBar>
+</MudStack>
+
+@if(paginasSeparadas is not null && paginasSeparadas.Any())
+{
+    <MudStack>
+        @foreach (var pagina in paginasSeparadas)
+        {
+            <MudTextField Label="Nome do arquivo" @bind-Value="pagina.Nome" />
+        }
+    </MudStack>
+    <MudButton OnClick="@(() => SalvarDados())" Color="Color.Primary" Variant="Variant.Filled">Salvar</MudButton>
+}
+
+<script>
+    function downloadFileFromStream(fileName, fileBase64) {
+    const link = document.createElement('a');
+    link.href = 'data:application/zip;base64,' + fileBase64;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    }
+</script>
+
+@code {
+
+    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+    private string _dragClass = DefaultDragClass;
+    private readonly List<IBrowserFile> _fileNames = new();
+    private MudFileUpload<IBrowserFile>? _fileUpload;
+    private string inputPdfPath;
+
+    private List<SepararPDF> paginasSeparadas = new List<SepararPDF>();
+
+
+    private async Task LimparAsync()
+    {
+        await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
+        _fileNames.Clear();
+        ClearDragClass();
+
+    }
+    private Task OpenFilePickerAsync()
+        => _fileUpload?.OpenFilePickerAsync() ?? Task.CompletedTask;
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        ClearDragClass();
+        var files = e.GetMultipleFiles();
+        foreach (var file in files)
+        {
+            _fileNames.Add(file);
+        }
+    }
+
+    private async Task Upload()
+    {
+        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+        Snackbar.Add("Iniciando Processamento dos arquivos...");
+
+        var content = new MultipartFormDataContent();
+        var file = _fileNames.FirstOrDefault();  
+        if (file != null)
+        {
+            var fileContent = new StreamContent(file.OpenReadStream());
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+
+            content.Add(fileContent, "file", file.Name);
+        }
+
+        var response = await Http.PostAsync("api/SepararPdf/upload", content);
+        if (response.IsSuccessStatusCode)
+        {
+            paginasSeparadas = await response.Content.ReadFromJsonAsync<List<SepararPDF>>();
+        }
+        else
+        {
+            Snackbar.Add("Erro ao processar os arquivos.", Severity.Error);
+        }
+    }
+
+
+    private void SetDragClass()
+        => _dragClass = $"{DefaultDragClass} mud-border-primary";
+
+    private void ClearDragClass()
+        => _dragClass = DefaultDragClass;
+
+
+    private async Task SalvarDados()
+    {
+        if (paginasSeparadas is not null && paginasSeparadas.Any())
+        {
+            var response = await Http.PostAsJsonAsync<List<SepararPDF>>("api/SepararPdf/save", paginasSeparadas);
+            if (response.IsSuccessStatusCode)
+            {
+                var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                var fileName = $"Pdf_Separados.zip";
+                await DownloadFile(fileBytes, fileName);
+                Snackbar.Add("arquivo gerado com sucesso!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Erro ao processar os arquivos.", Severity.Error);
+            }
+        }
+    }
+
+    private async Task DownloadFile(byte[] fileBytes, string fileName)
+    {
+        var base64File = Convert.ToBase64String(fileBytes);
+        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, base64File);
+    }
+}

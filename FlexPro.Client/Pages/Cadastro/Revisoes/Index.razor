@@ -1,0 +1,119 @@
+@page "/revisoes"
+@inject IDialogService DialogService
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<PageTitle>Revisões</PageTitle>
+
+<MudText Typo="Typo.h2" Align="Align.Center">Revisões</MudText>
+<br><br><br>
+
+<MudDataGrid Items="@RevisoesFiltradas" T="Revisao" Hover="true" Bordered="true" Striped="true" Dense="true" Filterable="true" SortMode="SortMode.Multiple" Virtualize>
+    <ToolBarContent>
+        <MudButton @onclick="@(() =>OpenDialogAsync())" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary">Cadastrar</MudButton>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"/>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Data" Title="Data" Sortable="true" Filterable="true" Format="dd/MM/yyyy"/>
+        <PropertyColumn Property="x => x.Kilometragem" Title="Quilometragem" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.NotaFiscal" Title="Nota Fiscal" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Tipo" Title="Tipo de Serviço" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Motorista" Title="Motorista" Sortable="true" Filterable="true"/>
+        <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
+            <CellTemplate>
+                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenEditDialogAsync(@context.Item))"/>
+                <MudSpacer/>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => ApagarRevisao(@context.Item))"/>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Revisao"/>
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    private IEnumerable<Revisao> Revisoes = new List<Revisao>();
+    private string _searchString = "";
+
+    private IEnumerable<Revisao> RevisoesFiltradas =>
+        string.IsNullOrWhiteSpace(_searchString)
+            ? Revisoes
+            : Revisoes.Where(r =>
+                r.NotaFiscal.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                r.Motorista.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                r.Tipo.Contains(_searchString, StringComparison.OrdinalIgnoreCase)
+            );
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            Revisoes = await Http.GetFromJsonAsync<IList<Revisao>>("api/revisao");
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add($"Ocorreu um erro ao coletar os dados {Environment.NewLine} Erro: {ex.Message} {Environment.NewLine} StackTrace: {ex.StackTrace}", Severity.Error);
+            Revisoes = default;
+        }
+    }
+    
+    private async Task ApagarRevisao(Revisao revisao)
+    {
+        var parametros = new DialogParameters<DialogRevisao>
+        {
+            { x => x.ContentText, "Tem certeza que você quer deletar este registro?, este processo não pode ser revertido!" },
+            { x => x.ButtonText, "Deletar" },
+            { x => x.Color, Color.Error },
+            { x => x.Revisao, revisao }
+        };
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = await DialogService.ShowAsync<DialogRevisao>("Deletar", parametros, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+    private async Task OpenDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarRevisao>("Cadastro de Revisões", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+    private async Task OpenEditDialogAsync(Revisao revisao)
+    {
+        var parametros = new DialogParameters<CadastrarRevisao>
+        {
+            {x => x._Revisao, revisao}
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarRevisao>("Atualizar Revisão", parametros, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+}
