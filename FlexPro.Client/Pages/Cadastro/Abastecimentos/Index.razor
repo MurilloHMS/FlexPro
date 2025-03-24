@@ -1,0 +1,336 @@
+@page "/abastecimentos"
+@using System.Net.Http.Headers
+
+@inject IDialogService DialogService
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+
+@attribute [Authorize]
+
+<PageTitle>Abastecimentos</PageTitle>
+
+<MudText Typo="Typo.h5">Abastecimentos</MudText>
+<br><br>
+<MudFileUpload T="IBrowserFile" Accept=".xlsx, .xls" MaximumFileCount="100" FilesChanged="uploadFile">
+    <ActivatorContent>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.CloudUpload">
+            Importar dados Abastecimentos
+        </MudButton>
+    </ActivatorContent>
+</MudFileUpload>
+
+@if (_files != null)
+{
+    <MudList T="string">
+        @foreach (var file in _files)
+        {
+            <MudListItem Icon="@Icons.Material.Filled.AttachFile">
+                @file.Name <code>@file.Size bytes</code>
+            </MudListItem>
+        }
+    </MudList>
+}
+<br>
+<MudButton OnClick="@(() => ImportarDados())" Variant="Variant.Filled" Disabled="@_isValid">Importar Dados</MudButton>
+<br><br>
+
+@if (!dataLoaded)
+{
+    <MudOverlay Visible="visible" DarkBackground >
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>  
+    </MudOverlay>
+}
+
+<MudDataGrid Items="@AbastecimentosFiltrados" T="Abastecimento" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true" Virtualize="true">
+    <ToolBarContent>
+        <MudStack Row="true" Spacing="3">
+            <MudFab OnClick="@(() => ExportarDados())" Color="Color.Primary" EndIcon="@Icons.Material.Filled.Download" Size="Size.Small" Label="Exportar"/>
+            <MudDivider Vertical="true" FlexItem="true"/>
+            <MudMenu FullWidth="true" ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Variant="Variant.Filled" Dense="true">
+                <ActivatorContent>
+                    <MudFab EndIcon="@Icons.Material.Filled.Mouse" Color="Color.Primary" Size="Size.Small" Label="Relatórios"/>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem OnClick="@(() => DownloadRelatorios("Geral"))" >Geral</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => DownloadRelatorios("Setor"))" >Setor</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => DownloadRelatorios("Individual"))">Individual</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+            <MudDivider Vertical="true" FlexItem="true"/>
+            <MudMenu FullWidth="true" ActivationEvent="@MouseEvent.MouseOver" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Variant="Variant.Filled" Dense="true">
+                <ActivatorContent>
+                    <MudFab Color="Color.Primary" EndIcon="@Icons.Material.Filled.Mail" Size="Size.Small" Label="Enviar"/>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem OnClick="@(() => EnviarRelatorios("Geral"))">Geral</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => EnviarRelatorios("Setor"))">Setor</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => EnviarRelatorios("Individual"))">Individual</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => EnviarRelatorios("Todos"))">Todos</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        </MudStack>
+        <MudSpacer/>
+        <MudTextField T="string" @bind-Value="_searchString" Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true"
+        AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"/>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.NomeDoMotorista" Title="Motorista" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Placa" Title="Placa" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Departamento" Title="Departamento" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Uf" Title="UF" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.DataDoAbastecimento" Title="Data do Abastecimento" Sortable="true" Filterable="true"  Format="dd/MM/yyyy"/>
+        <PropertyColumn Property="x => x.Litros" Title="Litros" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.ValorTotalTransacao" Title="Total Gasto" Sortable="true" Filterable="true"/>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Abastecimento"/>
+    </PagerContent>
+</MudDataGrid>
+
+<script>
+    function downloadFileFromStream(fileName, fileBase64) {
+    const link = document.createElement('a');
+    link.href = 'data:application/octet-stream;base64,' + fileBase64;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    }
+</script>
+
+@code {
+    private bool _isValid = true;
+    private bool dataLoaded;
+    private bool visible;
+
+    private IEnumerable<Abastecimento> _abastecimentos;
+    private IList<IBrowserFile> _files = new List<IBrowserFile>();
+
+    private string _searchString = "";
+
+    private IEnumerable<Abastecimento> AbastecimentosFiltrados =>
+        string.IsNullOrWhiteSpace(_searchString)
+            ? _abastecimentos
+            : _abastecimentos.Where(a => 
+                a.Departamento.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+                a.NomeDoMotorista.Contains(_searchString, StringComparison.OrdinalIgnoreCase) || 
+                a.Combustivel.Contains(_searchString, StringComparison.OrdinalIgnoreCase)
+            );
+
+    private void uploadFile(IBrowserFile file)
+    {
+        _files.Add(file);
+        _isValid = false;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            dataLoaded = false;
+            visible = true;
+            List<Abastecimento> listaDeAbastecimentos = await Http.GetFromJsonAsync<List<Abastecimento>>("api/abastecimento");
+            _abastecimentos = listaDeAbastecimentos;
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Ocorreu um erro ao coletar os dados de abastecimento {e.Message}");
+        }
+        finally
+        {
+            dataLoaded = true;
+            visible = false;
+        }
+    }
+
+
+    private async Task ImportarDados()
+    {
+        dataLoaded = false;
+        visible = true;
+        if (_files.Any())
+        {
+            Snackbar.Add("Iniciando processamento dos dados...", Severity.Info);
+            var content = new MultipartFormDataContent();
+            var file = _files.First();
+            if(file != null)
+            {
+                var fileContent = new StreamContent(file.OpenReadStream());
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
+
+                content.Add(fileContent, "file", file.Name);
+            }
+
+            var response = await Http.PostAsync("api/abastecimento/upload", content);
+            if (response.IsSuccessStatusCode)
+            {
+                _abastecimentos = await response.Content.ReadFromJsonAsync<List<Abastecimento>>();
+                Snackbar.Add("Dados processados com sucesso!", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add($"Ocorreu um erro, Status code: {response.StatusCode} error: {response.RequestMessage}");
+            }
+
+        }
+        else
+        {
+            Snackbar.Add("Erro: Nenuma informação encontrada", Severity.Error);
+        }
+
+        dataLoaded = true;
+        visible = false;
+        _isValid = true;
+    }
+
+    private async Task<IEnumerable<Abastecimento>> ColetarDadosAbastecimento(IBrowserFile arquivo)
+    {
+        List<Abastecimento> abastecimentos = new();
+
+            using (var stream = new MemoryStream())
+            {
+                await arquivo.OpenReadStream().CopyToAsync(stream);
+                stream.Position = 0;
+
+                using (XLWorkbook workbook = new(stream))
+                {
+                    var planilha = workbook.Worksheets.FirstOrDefault();
+                    var fileData = planilha?.RowsUsed().Skip(1).Select(row => new Abastecimento
+                    {
+                        DataDoAbastecimento = row.Cell(1).TryGetValue<string>(out var dataAbastecimento)
+                            ? DateTime.TryParse(dataAbastecimento, out var dataConvertida) ? dataConvertida.ToUniversalTime() : default
+                            : default,
+                        Uf = row.Cell(2).TryGetValue<string>(out var uf) ? uf : default,
+                        Placa = row.Cell(3).TryGetValue<string>(out var placa) ? placa : default,
+                        NomeDoMotorista = row.Cell(5).TryGetValue<string>(out var nomeDoMotorista) ? nomeDoMotorista : default,
+                        HodometroAtual = row.Cell(6).TryGetValue<double>(out var hodometroAtual) ? hodometroAtual : default,
+                        HodometroAnterior = row.Cell(7).TryGetValue<double>(out var hodometroAnterior) ? hodometroAnterior : default,
+                        DiferencaHodometro = row.Cell(8).TryGetValue<double>(out var diferencaHodometro) ? diferencaHodometro : default,
+                        MediaKm = row.Cell(9).TryGetValue<double>(out var mediaKm) ? mediaKm : default,
+                        Combustivel = row.Cell(10).TryGetValue<string>(out var combustivel) ? combustivel : default,
+                        Litros = row.Cell(11).TryGetValue<double>(out var litros) ? litros : default,
+                        ValorTotalTransacao = row.Cell(12).TryGetValue<decimal>(out var valorTotalTransacao) ? valorTotalTransacao : default,
+                        Preco = row.Cell(13).TryGetValue<decimal>(out var preco) ? preco : default
+                    }).ToList();
+
+                    fileData?.RemoveAll(a => a.Preco == 0);
+                    abastecimentos.AddRange(fileData ?? new List<Abastecimento>());
+                }
+            }
+
+            return abastecimentos;
+    }
+
+    private async Task ExportarDados()
+    {
+        if(!AbastecimentosFiltrados.Any())
+        {
+            Snackbar.Add("Dados Abastecimentos não encontrados", Severity.Error);
+            return;
+        }
+
+        var outputFolder = Path.Combine(Path.GetTempPath(), "Abastecimento");
+        if(!Directory.Exists(outputFolder))
+        {
+            Directory.CreateDirectory(outputFolder);
+        }
+
+        string fileName = Path.Combine(outputFolder, $"Abastecimentos-{DateTime.Now:dd-mm-yyyy}.xlsx");
+        using (var workbook = new XLWorkbook())
+        {
+            var Worksheet = workbook.Worksheets.Add("Abastecimentos");
+
+            Worksheet.Cell(1,1).Value = "ID";
+            Worksheet.Cell(1,2).Value = "Data do Abastecimento";
+            Worksheet.Cell(1,3).Value = "UF";
+            Worksheet.Cell(1,4).Value = "Nome do Motorista";
+            Worksheet.Cell(1,5).Value = "Departamento";
+            Worksheet.Cell(1,6).Value = "Hodômetro Atual";
+            Worksheet.Cell(1,7).Value = "Hodômetro Anterior";
+            Worksheet.Cell(1,8).Value = "Diferença do Hodômetro";
+            Worksheet.Cell(1,9).Value = "Média KM/L";
+            Worksheet.Cell(1,10).Value = "Tipo do Combustível";
+            Worksheet.Cell(1,11).Value = "Litros Abastecidos";
+            Worksheet.Cell(1,12).Value = "Preço do Litro";
+            Worksheet.Cell(1,13).Value = "Valor Total";
+
+            int novaLinha = 2;
+
+            foreach(var linha in AbastecimentosFiltrados)
+            {
+                Worksheet.Cell(novaLinha, 1).Value = linha.Id;
+                Worksheet.Cell(novaLinha, 2).Value = linha.DataDoAbastecimento;
+                Worksheet.Cell(novaLinha, 3).Value = linha.Uf;
+                Worksheet.Cell(novaLinha, 4).Value = linha.NomeDoMotorista;
+                Worksheet.Cell(novaLinha, 5).Value = linha.Departamento;
+                Worksheet.Cell(novaLinha, 6).Value = linha.HodometroAtual;
+                Worksheet.Cell(novaLinha, 7).Value = linha.HodometroAnterior;
+                Worksheet.Cell(novaLinha, 8).Value = linha.DiferencaHodometro;
+                Worksheet.Cell(novaLinha, 9).Value = linha.MediaKm;
+                Worksheet.Cell(novaLinha, 10).Value = linha.Combustivel;
+                Worksheet.Cell(novaLinha, 11).Value = linha.Litros;
+                Worksheet.Cell(novaLinha, 12).Value = linha.Preco;
+                Worksheet.Cell(novaLinha, 13).Value = linha.ValorTotalTransacao;
+            
+               novaLinha++;
+            }
+
+            workbook.SaveAs(fileName);
+        }
+        var fileBytes = System.IO.File.ReadAllBytes(fileName);
+        Snackbar.Add("Dados Exportados Com Sucesso!", Severity.Success);
+        await DownloadFile(fileBytes, Path.GetFileName(fileName));
+    }
+    private async Task DownloadFile(byte[] fileBytes, string fileName)
+    {
+        var fileStream = new BlazorDownloadFileStream(fileBytes);
+        var base64File = Convert.ToBase64String(fileBytes);
+        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, base64File);
+    }
+
+    public class BlazorDownloadFileStream
+    {
+        public byte[] FileBytes { get; }
+        public BlazorDownloadFileStream(byte[] fileBytes)
+        {
+            FileBytes = fileBytes;
+        }
+    }
+
+    private async Task DownloadRelatorios(string tipo)
+    {
+        var parametros = new DialogParameters<RelatoriosAbastecimentos>
+        {
+            { x => x.tipo, tipo },
+            {x => x.isDownload, true}
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<RelatoriosAbastecimentos>($"Download do Relatório {tipo}",parametros, options);
+        var result = await dialog.Result;
+        
+        if (!result.Canceled)
+        {
+            Snackbar.Add($"Iniciando Download Relatório {tipo}", Severity.Success);
+        }
+    }
+
+    private async Task EnviarRelatorios(string tipo)
+    {
+        var parametros = new DialogParameters<RelatoriosAbastecimentos>
+        {
+            {x => x.tipo, tipo},
+            {x => x.isDownload, false}
+        };
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<RelatoriosAbastecimentos>($"Envio do Relatório {tipo}", parametros, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            Snackbar.Add($"Iniciando Envio dos relatórios {tipo}", Severity.Success);
+        }
+    }
+}

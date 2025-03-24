@@ -1,0 +1,73 @@
+@inject IDialogService DialogService
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="12">
+                <MudForm @ref="form" @bind-IsValid="isFormValid">
+                    <MudTextField Label="Nome" @bind-Value="Entidade.Nome" Required="true"/>
+                </MudForm>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton OnClick="Salvar" Color="Color.Primary" Disabled="!isFormValid">Salvar</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+    private Entidade Entidade = new Entidade();
+    private MudForm form;
+    private bool isFormValid;
+
+    [CascadingParameter] 
+    IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public Entidade _entidade { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (_entidade != null)
+        {
+            Entidade = _entidade;
+        }
+    }
+
+    private void CloseDialog() => MudDialog.Cancel();
+
+    private async Task Salvar()
+    {
+        try
+        {
+            if (_entidade != null)
+            {
+                var response = await Http.PutAsJsonAsync<Entidade>($"api/entidade/{Entidade.ID}", Entidade);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Entidade cadastrada com sucesso!", Severity.Success);
+                }
+            }
+            else
+            {
+                var response = await Http.PostAsJsonAsync<Entidade>("api/entidade", Entidade);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Entidade atualizada com sucesso!", Severity.Success);
+                }
+
+            }
+            MudDialog?.Close(DialogResult.Ok(Entidade));
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Ocorreu um erro ao cadastrar a Entidade: {e.Message}", Severity.Error);
+            throw;
+        }
+    }
+    
+}

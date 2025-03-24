@@ -1,0 +1,134 @@
+@page "/DadosCartoes"
+
+@inject ISnackbar Snackbar
+@inject  IJSRuntime JSRuntime
+
+@attribute [Authorize]
+
+<MudText Typo="Typo.h3" Align="Align.Center">Separar Dados Dos Cartões</MudText>
+
+<MudStack>
+    <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                   Accept=".xlsx"
+                   MaximumFileCount="1000"
+                   @ref="@_fileUpload"
+                   OnFilesChanged="OnInputFileChanged"
+                   AppendMultipleFiles
+                   Hidden="false"
+                   InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
+                   InputStyle="opacity:0"
+                   tabindex="-1"
+                   @ondrop="@ClearDragClass"
+                   @ondragenter="@SetDragClass"
+                   @ondragend="@ClearDragClass"
+                   @ondragleave="@ClearDragClass">
+        <ActivatorContent>
+            <MudPaper Height="300px"
+                      Outlined="true"
+                      Class="@_dragClass">
+                <MudText Typo="Typo.h6">
+                    arraste ou solte os arquivos aqui ou clique para selecionar
+                </MudText>
+                @if (_fileNames != null && _fileNames.Any())
+                {
+                    @for (int i = 0; i < 20 && i < _fileNames.Count; i++)
+                    {
+                        <MudChip T="string"
+                                 Color="Color.Dark"
+                                 Text="@_fileNames[i].Name"
+                                 tabindex="-1"/>
+                    }
+                }
+            </MudPaper>
+        </ActivatorContent>
+    </MudFileUpload>
+    <MudToolBar Gutters="@false" Class="relative d-flex justify-end gap-4">
+        <MudButton Color="Color.Primary" OnClick="@OpenFilePickerAsync" Variant="Variant.Filled">
+            Selecionar Arquivos
+        </MudButton>
+        <MudButton Color="Color.Secondary"
+                   Disabled="@(!_fileNames.Any())"
+                   OnClick="@Upload"
+                   Variant="Variant.Filled">
+            Separar Dados dos cartões
+        </MudButton>
+        <MudButton Color="Color.Error"
+                   Disabled="@(!_fileNames.Any())"
+                   OnClick="@ClearAsync"
+                   Variant="Variant.Filled">
+            Apagar Arquivos
+        </MudButton>
+    </MudToolBar>
+</MudStack>
+
+<script>
+    function downloadFileFromStream(fileName, fileBase64) {
+        const link = document.createElement('a');
+        link.href = 'data:application/zip;base64,' + fileBase64; 
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+</script>
+
+@code {
+   
+    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+    private string _dragClass = DefaultDragClass;
+    private readonly List<IBrowserFile> _fileNames = new();
+    private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
+
+    private void SetDragClass() => _dragClass = $"{DefaultDragClass} mud-border-primary";
+    private void ClearDragClass() => _dragClass = DefaultDragClass;
+    
+    private async Task ClearAsync()
+    {
+        await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
+        _fileNames.Clear();
+        ClearDragClass();
+    }
+
+    private Task OpenFilePickerAsync() => _fileUpload?.OpenFilePickerAsync() ?? Task.CompletedTask;
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        ClearDragClass();
+        var files = e.GetMultipleFiles(1000);
+        foreach (var file in files)
+        {
+            _fileNames.Add(file);
+        }
+    }
+
+    private async Task Upload()
+    {
+        Snackbar.Add("Iniciando processamento dos dados...");
+
+        foreach (var file in _fileNames)
+        {
+            if (Path.GetExtension(file.Name).Contains("xlsx"))
+            {
+                
+            }
+        }
+
+        await Download();
+    }
+
+    private async Task Download()
+    {
+        var outputFolder = Path.Combine(Path.GetTempPath(), "PlanilhasSeparadas");
+        if (!Directory.Exists(outputFolder))
+            return;
+
+        using var memoryStream = new MemoryStream();
+        System.IO.Compression.ZipFile.CreateFromDirectory(outputFolder, memoryStream);
+        memoryStream.Seek(0, SeekOrigin.Begin);
+
+        var base64File = Convert.ToBase64String(memoryStream.ToArray());
+        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", "DadosCartoesFuncionarios.zip", base64File);
+        
+        Directory.Delete(outputFolder, true);
+    }
+}

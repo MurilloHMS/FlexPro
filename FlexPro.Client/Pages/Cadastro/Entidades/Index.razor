@@ -1,0 +1,117 @@
+@page "/entidades"
+
+@inject IDialogService DialogService
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<PageTitle>Entidades</PageTitle>
+
+<MudText Typo="Typo.h2" Align="Align.Center">Prestadores e Fornecedores</MudText>
+<br><br><br>
+
+<MudDataGrid Items="@EntidadesFiltradas" T="Entidade" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Virtualize>
+    <ToolBarContent>
+        <MudButton @onclick="@(() =>OpenDialogAsync())" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary">Cadastrar</MudButton>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"/>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Nome" Title="Nome" Sortable="true" Filterable="true"/>
+        <TemplateColumn Hidden="false" CellClass="d-flex justify-center">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Edit" OnClick="@(() => OpenEditDialogAsync(@context.Item))"/>
+                <MudSpacer/>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => ApagarEntidades(@context.Item))"/>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Entidade" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+
+    private IEnumerable<Entidade> entidades = new List<Entidade>();
+    private string _searchString = "";
+
+    private IEnumerable<Entidade> EntidadesFiltradas =>
+        string.IsNullOrWhiteSpace(_searchString)
+            ? entidades
+            : entidades.Where(c =>
+                c.Nome.Contains(_searchString, StringComparison.OrdinalIgnoreCase)
+            );
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            entidades = await Http.GetFromJsonAsync<IList<Entidade>>("api/entidade");
+        }
+        catch (HttpRequestException ex)
+        {
+            Snackbar.Add($"Ocorreu um erro ao coletar os dados {Environment.NewLine} Erro: {ex.Message} {Environment.NewLine} StackTrace: {ex.StackTrace}", Severity.Error);
+            entidades = default;
+        }
+    }
+
+    private async Task ApagarEntidades(Entidade entidade)
+    {
+        var parametros = new DialogParameters<DialogEntidades>
+        {
+            { x => x.ContentText, "Tem certeza que você quer deletar este registro?, este processo não pode ser revertido!" },
+            { x => x.ButtonText, "Deletar" },
+            { x => x.Color, Color.Error },
+            { x => x.Entidade, entidade }
+        };
+        
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+
+        var dialog = await DialogService.ShowAsync<DialogEntidades>("Deletar", parametros, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData(); 
+        }
+    }
+    
+    private async Task OpenDialogAsync()
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarEntidades>("Cadastro de Prestadores e Fornecedores", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+    
+    private async Task OpenEditDialogAsync(Entidade entidade)
+    {
+        var parametros = new DialogParameters<CadastrarEntidades>
+        {
+            { x => x._entidade, entidade }
+        };
+        
+        var options = new DialogOptions { CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium, FullWidth = true};
+        var dialog = await DialogService.ShowAsync<CadastrarEntidades>("Editar Prestadores e Fornecedores", parametros ,options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadData();
+        }
+    }
+
+}

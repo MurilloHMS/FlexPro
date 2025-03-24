@@ -1,0 +1,94 @@
+@inject IDialogService DialogService
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="12">
+                <MudForm @ref="form" @bind-IsValid="isFormValid">
+                    <MudTextField Label="Nome" @bind-Value="funcionarios.Nome" Required="true"/>
+                    <MudTextField Label="Departamento" @bind-Value="funcionarios.Departamento" Required="true"/>
+                    <MudSelect Label="Hierarquia" @bind-Value="funcionarios.Hierarquia" Required="false">
+                        @foreach (var hierarquia in hierarquias)
+                        {
+                            <MudSelectItem Value="hierarquia">@hierarquia</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudTextField Label="Gerente" @bind-Value="funcionarios.Gerente" Required="false"/>
+                    <MudTextField Label="Email" @bind-Value="funcionarios.Email" Required="false"/>
+                    <MudTextField Label="Hash" @bind-Value="funcionarios.Hash" Required="false"/>
+                </MudForm>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton OnClick="SalvarFuncionario" Color="Color.Primary" Disabled="!isFormValid">Salvar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private Funcionarios funcionarios = new Funcionarios();
+    private MudForm form;
+    private bool isFormValid;
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public Funcionarios _funcionarios { get; set; }
+
+    [Parameter]
+    public string Tipo { get; set; }
+
+    private string[] hierarquias =
+    {
+        "SUPERVISOR", "GERENTE", "COORDENADOR", "CONSULTOR"
+    };
+
+    protected override void OnInitialized()
+    {
+        if (_funcionarios is not null)
+        {
+            funcionarios = _funcionarios;
+        }
+    }
+
+    private void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task SalvarFuncionario()
+    {
+        try
+        {
+            if (_funcionarios is not null)
+            {
+                var response = await Http.PutAsJsonAsync<Funcionarios>($"api/funcionario/{funcionarios.Id}", funcionarios);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Funcionário Atualizado com Sucesso!", Severity.Success);
+                }
+            }
+            else
+            {
+                var response = await Http.PostAsJsonAsync<Funcionarios>("api/funcionario/", funcionarios);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Funcionário cadastrado com Sucesso!", Severity.Success);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Ocorreu um erro ao deletar o Funcionário: {e.Message}", Severity.Error);
+            throw;
+        }
+        
+        MudDialog?.Close(DialogResult.Ok(funcionarios));
+    }
+}

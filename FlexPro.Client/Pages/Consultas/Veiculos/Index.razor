@@ -1,0 +1,85 @@
+@page "/consulta/veiculo"
+
+@inject ISnackbar Snackbar
+@inject HttpClient Http
+
+
+<MudText Typo="Typo.h3" Align="Align.Center">Consulta de Veículos</MudText>
+<br>
+<MudText Typo="Typo.body1" Align="Align.Center">Selecione um veículo abaixo para consultar as revisões e o histórico do veículo</MudText>
+<MudSelect Label="Veiculo" @bind-Value="_veiculo.Id" Placeholder="Selecione um Veículo">
+    @foreach (var veiculo in _veiculos)
+    {
+        <MudSelectItem Value="veiculo.Id">@veiculo.Marca @veiculo.Nome - @veiculo.Placa</MudSelectItem>
+
+    }
+</MudSelect>
+<br><br>
+<MudButton OnClick="@(() => BuscarRevisoes())" StartIcon="@Icons.Material.Filled.Search" Variant="Variant.Filled" Color="Color.Primary">Buscar Informações</MudButton>
+<br><br>
+
+<MudDataGrid Items="@RevisoesFiltradas" T="Revisao" Hover="true" Bordered="true" Striped="true" Dense="true" SortMode="SortMode.Multiple" Filterable="true" Virtualize>
+    <ToolBarContent>
+        <MudText Label="Dados do Veiculo"/>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Buscar" Adornment="Adornment.Start" Immediate="true"
+        AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Data" Title="Data da Revisão" Sortable="true" Filterable="true" Format="dd/MM/yyyy"/>
+        <PropertyColumn Property="x => x.Kilometragem" Title="Quilometragem" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.NotaFiscal" Title="Nota Fiscal" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Tipo" Title="Tipo de Serviço" Sortable="true" Filterable="true"/>
+        <PropertyColumn Property="x => x.Motorista" Title="Motorista" Sortable="true" Filterable="true"/>
+
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Revisao" />
+    </PagerContent>
+</MudDataGrid>
+
+@code {
+    private Veiculo _veiculo = new Veiculo();
+    private IEnumerable<Veiculo> _veiculos = new List<Veiculo>();
+    private IEnumerable<Revisao> _revisoes = new List<Revisao>();
+    private string _searchString = "";
+
+    private IEnumerable<Revisao> RevisoesFiltradas =>
+        string.IsNullOrWhiteSpace(_searchString)
+            ? _revisoes
+            : _revisoes.Where(r =>
+                r.NotaFiscal.Contains(_searchString, StringComparison.InvariantCultureIgnoreCase) ||
+                r.Motorista.Contains(_searchString, StringComparison.InvariantCultureIgnoreCase) ||
+                r.Tipo.Contains(_searchString, StringComparison.OrdinalIgnoreCase)
+            );
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var vehicles = await Http.GetFromJsonAsync<List<Veiculo>>("api/Veiculo");
+            _veiculos = vehicles;
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add("Ocorreu um erro ao coletar os dados do veiculo.", Severity.Error);
+            throw;
+        }
+        
+    }
+
+    private async Task BuscarRevisoes()
+    {
+        try
+        {
+            _revisoes = await Http.GetFromJsonAsync<List<Revisao>>($"api/Revisao/Veiculo/{_veiculo.Id}");
+
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add("Ocorreu um erro ao coletar os dados do veiculo.", Severity.Error);
+            throw;
+        }
+    }
+
+}

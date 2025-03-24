@@ -1,0 +1,185 @@
+@page "/CalculoTransportadoras"
+@using System.Net.Http.Headers
+
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+
+@attribute [Authorize]
+
+<MudText Typo="Typo.h4" Align="Align.Center">Calcular Transportadoras</MudText>
+
+<MudStack Style="width: 100%">
+    <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                   Accept=".xml"
+                   MaximumFileCount="1000"
+                   @ref="_fileUpload"
+                   OnFilesChanged="OnInputFileChanged"
+                   AppendMultipleFiles
+                   Hidden="@false"
+                   InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
+                   InputStyle="opacity:0"
+                   tabindex="-1"
+                   @ondrop="@ClearDragClass"
+                   @ondragenter="@SetDragClass"
+                   @ondragleave="@ClearDragClass"
+                   @ondragend="@ClearDragClass">
+        <ActivatorContent>
+            <MudPaper Height="300px"
+                      Outlined="true"
+                      Class="@_dragClass">
+                <MudText Typo="Typo.h6">
+                    Arraste e solte os arquivos aqui ou clique para selecionar.
+                </MudText>
+                @if (_fileNames != null && _fileNames.Any())
+                {
+                    @for (int i = 0; i < 20 && i < _fileNames.Count; i++)
+                    {
+                        <MudChip T="string"
+                                 Color="Color.Dark"
+                                 Text="@_fileNames[i].Name"
+                                 tabindex="-1"/>
+                    }
+                }
+            </MudPaper>
+        </ActivatorContent>
+    </MudFileUpload>
+    <MudToolBar Gutters="@false"
+                Class="relative d-flex justify-end gap-4">
+        <MudButton Color="Color.Primary"
+                   OnClick="@OpenFilePickerAsync"
+                   Variant="Variant.Filled">
+            Selecionar Arquivos
+        </MudButton>
+        <MudButton Color="Color.Primary"
+                   Disabled="@(!_fileNames.Any())"
+                   OnClick="@Upload"
+                   Variant="Variant.Filled">
+            Calcular Transportadoras
+        </MudButton>
+        <MudButton Color="Color.Error"
+                   Disabled="@(!_fileNames.Any())"
+                   OnClick="@ClearAsync"
+                   Variant="Variant.Filled">
+            Apagar arquivos
+        </MudButton>
+    </MudToolBar>
+</MudStack>
+
+<script>
+    function printContent(content) {
+        const printWindow = window.open('', '', 'width=800,height=600');
+        printWindow.document.write('<html><head><title>Resultado dos Calculos</title></head><body>');
+        printWindow.document.write('<pre>' + content + '</pre>');  // Exibe o conteúdo com formatação de texto
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.print();
+    }
+</script>
+
+@if (resultadoDosCalculos is not null)
+{
+    <MudTextField T="string" Label="Resultado" Variant="Variant.Outlined" Text="@resultadoDosCalculos" AutoGrow></MudTextField>
+    <MudButton OnClick="Imprimir" Color="Color.Primary" Variant="Variant.Filled">Imprimir</MudButton>
+}
+
+@if (!dataLoaded)
+{
+<MudOverlay Visible="visible" DarkBackground >
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+</MudOverlay>
+}
+
+@code {
+    private string? resultadoDosCalculos { get; set; }
+    private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
+    private string _dragClass = DefaultDragClass;
+    private List<IBrowserFile> _fileNames = new List<IBrowserFile>();
+    private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
+    
+    private bool dataLoaded;
+    private bool visible;
+    
+    private async Task Imprimir()
+    {
+        if (!string.IsNullOrEmpty(resultadoDosCalculos))
+        {
+            await JSRuntime.InvokeVoidAsync("printContent", resultadoDosCalculos);
+        }
+    }
+
+    private async Task ClearAsync()
+    {
+        await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
+        _fileNames.Clear();
+        resultadoDosCalculos = default;
+
+    }
+
+    private Task OpenFilePickerAsync() => _fileUpload?.OpenFilePickerAsync() ?? Task.CompletedTask;
+    private void SetDragClass() => _dragClass = $"{DefaultDragClass} mud-border-primary";
+
+    private void ClearDragClass() => _dragClass = DefaultDragClass;
+
+    private void OnInputFileChanged(InputFileChangeEventArgs e)
+    {
+        ClearDragClass();
+        var files = e.GetMultipleFiles(1000);
+        foreach (var file in files)
+        {
+            if (Path.GetExtension(file.Name).Contains("xml"))
+            {
+                _fileNames.Add(file);
+            }
+        }
+    }
+
+    private async void Upload()
+    {
+        Snackbar.Add("Iniciando Processamento dos arquivos...");
+        try
+        {
+            dataLoaded = false;
+            visible = true;
+            StateHasChanged();
+            
+            StringBuilder resultado = new();
+            var content = new MultipartFormDataContent();
+
+            foreach (var file in _fileNames)
+            {
+                var fileContent = new StreamContent(file.OpenReadStream());
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
+                content.Add(fileContent, "files", file.Name);
+            }
+
+            var response = await Http.PostAsync("api/calculotransportadoras/calcular", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                resultadoDosCalculos = response.Content.ReadAsStreamAsync().ToString();
+                Snackbar.Add("Dados Processados Com Sucesso!", Severity.Success);
+                dataLoaded = true;
+                visible = false;
+                StateHasChanged();
+
+            }
+            else
+            {
+                resultadoDosCalculos = response.Content.ReadAsStreamAsync().ToString();
+                Snackbar.Add($"Ocorreu um erro ao processar os dados! {response.RequestMessage}", Severity.Error);
+                dataLoaded = true;
+                visible = false;
+            }
+            
+        }
+        catch (Exception e)
+        {
+            dataLoaded = true;
+            visible = false;
+            Snackbar.Add($"Erro ao processar o Arquivo: {e.Message}", Severity.Error);
+            StateHasChanged();
+            throw;
+        }
+    }
+}

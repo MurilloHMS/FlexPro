@@ -1,0 +1,116 @@
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject HttpClient Http
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="12">
+                <MudForm @ref="form" @bind-IsValid="isFormValid">
+                    <MudSelect Label="Veiculo" @bind-Value="revisao.VeiculoId" Required="true">
+                        @foreach (var veiculo in _veiculos)
+                        {
+                            <MudSelectItem Value="veiculo.Id">@veiculo.Marca @veiculo.Nome - @veiculo.Placa</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudSelect Label="Local | Fornecedor" @bind-Value="revisao.LocalId" Required="true">
+                        @foreach (var fornecedor in _entidades)
+                        {
+                            <MudSelectItem Value="fornecedor.ID">@fornecedor.Nome</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudTextField Label="Motorista" @bind-Value="revisao.Motorista" Required="true"/>
+                    <MudDatePicker Label="Data da Revisão" @bind-Date="revisao.Data"  Placeholder="Selecione uma Data" Editable="true" Required="true"/>
+                    <MudNumericField Label="Quilometragem" @bind-Value="revisao.Kilometragem" Required="true"/>
+                    <MudTextField Label="Nota Fiscal" @bind-Value="revisao.NotaFiscal" Required="true"/>
+                    <MudSelect Label="Tipo de Serviço" @bind-Value="revisao.Tipo" Required="true">
+                        @foreach (var item in Tipos)
+                        {
+                            <MudSelectItem Value="item">@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudTextField Label="Observações" @bind-Value="revisao.Observacao" Variant="Variant.Text" AutoGrow MaxLines="4"/>
+                </MudForm>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog" Color="Color.Secondary">Cancelar</MudButton>
+        <MudButton OnClick="Salvar" Color="Color.Primary" Disabled="!isFormValid">Salvar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    private Revisao revisao = new Revisao();
+    private MudForm form;
+    private bool isFormValid;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public Revisao _Revisao { get; set; }
+
+    private IEnumerable<Veiculo> _veiculos = new List<Veiculo>();
+    private IEnumerable<Entidade> _entidades = new List<Entidade>();
+
+    private string[] Tipos =
+    {
+        "TROCA DE ÓLEO", "MANUTENÇÃO", "MANUTENÇÃO ELÉTRICA"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (_Revisao is not null)
+            {
+                revisao = _Revisao;
+            }
+
+            _veiculos = await Http.GetFromJsonAsync<IList<Veiculo>>("api/veiculo");
+            _entidades = await Http.GetFromJsonAsync<IList<Entidade>>("api/entidade");
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Ocorreu um erro ao carregar os veiculos e locais:  {e.Message}");
+        }
+    }
+
+    private void CloseDialog()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Salvar()
+    {
+        try
+        {
+            if (revisao.Data.HasValue)
+            {
+                revisao.Data = revisao.Data.Value.ToUniversalTime();
+            }
+
+            if (_Revisao is not null)
+            {
+                var response = await Http.PutAsJsonAsync<Revisao>($"api/revisao/{revisao.Id}", revisao);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Revisão Atualizada com Sucesso!", Severity.Success);
+                }
+            }
+            else
+            {
+                var response = await Http.PostAsJsonAsync<Revisao>("api/revisao", revisao);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Revisão Incluída com Sucesso!", Severity.Success);
+                }           
+            }
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add($"Ocorreu um erro ao incluir a revisão: {e.Message}",Severity.Error);
+            throw;
+        }
+        MudDialog?.Close(DialogResult.Ok(revisao)); 
+    }
+}

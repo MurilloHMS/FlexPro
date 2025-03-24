@@ -1,0 +1,46 @@
+@inject HttpClient Http
+@inject ISnackbar Snackbar
+<MudDialog>
+    <DialogContent>
+        <MudText>@ContentText</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="@Color" Variant="Variant.Filled" OnClick="Submit">@ButtonText</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter]
+    public string ContentText { get; set; }
+
+    [Parameter]
+    public string ButtonText { get; set; }
+
+    [Parameter]
+    public Color Color { get; set; }
+
+    [Parameter]
+    public Veiculo Veiculo { get; set; }
+
+    private async Task Submit()
+    {
+        try
+        {
+            await Http.DeleteFromJsonAsync<Veiculo>($"api/veiculo/{Veiculo.Id}");
+            Snackbar.Add("Veiculo Deletado", Severity.Success);
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add("Ocorreu um erro ao deletar o veiculo", Severity.Error);
+            throw;
+        }
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+    
+}
