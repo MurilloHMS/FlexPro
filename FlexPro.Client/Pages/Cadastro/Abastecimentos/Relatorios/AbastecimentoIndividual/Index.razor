@@ -20,7 +20,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        var request = await Http.GetFromJsonAsync<string>($"api/abastecimento/calcular/individual/{Data}");
+        var request = await Http.GetStringAsync($"api/abastecimento/calcular/individual/{Data}");
         resultado = request;
     }
 }
