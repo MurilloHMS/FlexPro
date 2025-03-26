@@ -19,22 +19,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (string.IsNullOrEmpty(Data))
-        {
-            DataConvertida = DateTime.MinValue;
-        }
-        else if (DateTime.TryParse(Data, out var data))
-        {
-            DataConvertida = data;
-        }
-        else
-        {
-            DataConvertida = DateTime.MinValue;
-        }
-
-        if (DataConvertida != DateTime.MinValue)
-        {
-            resultado = await Http.GetFromJsonAsync<string>($"api/abastecimento/calcular/setor/{DataConvertida}");
-        }
+        var request = await Http.GetFromJsonAsync<string>($"api/abastecimento/calcular/setor/{Data}");
+        resultado = request;
     }
 }

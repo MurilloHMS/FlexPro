@@ -11,26 +11,10 @@
     private string? resultado { get; set; }
     
     [Parameter] public string Data { get; set; }
-    public DateTime DataConvertida { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
-        if (string.IsNullOrEmpty(Data))
-        {
-            DataConvertida = DateTime.MinValue;
-        }
-        else if (DateTime.TryParse(Data, out var data))
-        {
-            DataConvertida = data;
-        }
-        else
-        {
-            DataConvertida = DateTime.MinValue;
-        }
-
-        if (DataConvertida != DateTime.MinValue)
-        {
-            resultado = await Http.GetFromJsonAsync<string>($"api/abastecimento/calcular/geral/{DataConvertida}");
-        }
+        var request = await Http.GetFromJsonAsync<string>($"api/abastecimento/calcular/geral/{Data}");
+        resultado = request;
     }
 }
