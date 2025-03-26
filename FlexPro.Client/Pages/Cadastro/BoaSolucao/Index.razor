@@ -199,57 +199,57 @@
         Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
         Snackbar.Add("Carregando arquivo para analise.");
 
-        // decimal produtosBranco = 0m;
-        // decimal produtosAmarelos = 0m;
-        // decimal produtosCinza = 0m;
+        decimal produtosBranco = 0m;
+        decimal produtosAmarelos = 0m;
+        decimal produtosCinza = 0m;
 
-        // if (_fileNames.Any())
-        // {
-        //     var file = _fileNames.First();
-        //     _boaSolucao = await ColetarDadosBoaSolucao(file);
+        if (_fileNames.Any())
+        {
+            var file = _fileNames.First();
+            _boaSolucao = await ColetarDadosBoaSolucao(file);
 
-        //     if (_produtos.Any())
-        //     {
-        //         foreach (var item in _boaSolucao)
-        //         {
-        //             var produtoExiste = _produtos.Any(p => p.CodigoSistema == item.CodigoProduto);
+            if (_produtos.Any())
+            {
+                foreach (var item in _boaSolucao)
+                {
+                    var produtoExiste = _produtos.Any(p => p.CodigoSistema == item.CodigoProduto);
 
-        //             if (produtoExiste)
-        //             {
-        //                 var produto = _produtos.FirstOrDefault(p => p.CodigoSistema == item.CodigoProduto);
+                    if (produtoExiste)
+                    {
+                        var produto = _produtos.FirstOrDefault(p => p.CodigoSistema == item.CodigoProduto);
 
-        //                 var isValid = produto.QuantidadeProducao == item.Quantidade;
+                        var isValid = produto.QuantidadeProducao == item.Quantidade;
 
-        //                 item.isValid = isValid;
+                        item.isValid = isValid;
 
-        //                 if (produto.MateriaPrima == "Proauto" && produto.Tipo == "Obra Prima")
-        //                 {
-        //                     produtosBranco += item.ValorTotal;
-        //                 }
-        //                 else if (produto.MateriaPrima == "Boa Solução" && produto.Tipo != "Produto")
-        //                 {
-        //                     produtosAmarelos += item.ValorTotal;
-        //                 }
-        //                 else if (produto.MateriaPrima == "Mão de Obra" && produto.Tipo == "Mão de Obra")
-        //                 {
-        //                     produtosCinza += item.ValorTotal;
-        //                 }
-        //             }
-        //         }
+                        if (produto.MateriaPrima == "Proauto" && produto.Tipo == "Obra Prima")
+                        {
+                            produtosBranco += item.ValorTotal;
+                        }
+                        else if (produto.MateriaPrima == "Boa Solução" && produto.Tipo != "Produto")
+                        {
+                            produtosAmarelos += item.ValorTotal;
+                        }
+                        else if (produto.MateriaPrima == "Mão de Obra" && produto.Tipo == "Mão de Obra")
+                        {
+                            produtosCinza += item.ValorTotal;
+                        }
+                    }
+                }
 
-        //         decimal mercadoriasEmpregas = produtosBranco + produtosAmarelos;
-        //         decimal totalCobrado = produtosBranco + produtosCinza;
+                decimal mercadoriasEmpregas = produtosBranco + produtosAmarelos;
+                decimal totalCobrado = produtosBranco + produtosCinza;
 
-        //         StringBuilder sb = new StringBuilder();
-        //         sb.AppendLine($"Valor da mercadoria recebida para industrializacao: {produtosAmarelos:C}");
-        //         sb.AppendLine();
-        //         sb.AppendLine($"Valor total das mercadorias empregadas: {mercadoriasEmpregas:C}");
-        //         sb.AppendLine();
-        //         sb.AppendLine($"Valor Total Cobrado: R$ {totalCobrado:C}");
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"Valor da mercadoria recebida para industrializacao: {produtosAmarelos:C}");
+                sb.AppendLine();
+                sb.AppendLine($"Valor total das mercadorias empregadas: {mercadoriasEmpregas:C}");
+                sb.AppendLine();
+                sb.AppendLine($"Valor Total Cobrado: R$ {totalCobrado:C}");
 
-        //         textToDescription = sb.ToString();
-        //     }
-        // }
+                textToDescription = sb.ToString();
+            }
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -404,32 +404,32 @@
         ResultadoDoCalculo = calculo != 0 && calculo != null ? calculo : 0m ;
     }
 
-    // public async Task<IEnumerable<BoaSolucao>> ColetarDadosBoaSolucao(IBrowserFile arquivo)
-    // {
-    //     List<BoaSolucao> boaSolucao = new();
+    public async Task<IEnumerable<BoaSolucao>> ColetarDadosBoaSolucao(IBrowserFile arquivo)
+    {
+        List<BoaSolucao> boaSolucao = new();
 
-    //     using (var stream = new MemoryStream())
-    //     {
-    //         await arquivo.OpenReadStream().CopyToAsync(stream);
-    //         stream.Position = 0;
+        using (var stream = new MemoryStream())
+        {
+            await arquivo.OpenReadStream().CopyToAsync(stream);
+            stream.Position = 0;
 
-    //         using (XLWorkbook workbook = new(stream))
-    //         {
-    //             var planilha = workbook.Worksheets.First();
-    //             var fileData = planilha?.RowsUsed().Skip(3).Select(row => new BoaSolucao
-    //             {
-    //                 CodigoProduto = row.Cell(1).TryGetValue<string>(out var codigoDoProduto) ? codigoDoProduto : default,
-    //                 Descricao = row.Cell(2).TryGetValue<string>(out var descricao) ? descricao : default,
-    //                 Quantidade = row.Cell(3).TryGetValue<decimal>(out var quantidade) ? quantidade : default,
-    //                 Valor = row.Cell(4).TryGetValue<decimal>(out var valorUnitario) ? valorUnitario : default,
-    //                 ValorTotal = row.Cell(5).TryGetValue<decimal>(out var valorTotal) ? valorTotal : default
-    //             }).ToList();
+            using (XLWorkbook workbook = new(stream))
+            {
+                var planilha = workbook.Worksheets.First();
+                var fileData = planilha?.RowsUsed().Skip(3).Select(row => new BoaSolucao
+                {
+                    CodigoProduto = row.Cell(1).TryGetValue<string>(out var codigoDoProduto) ? codigoDoProduto : default,
+                    Descricao = row.Cell(2).TryGetValue<string>(out var descricao) ? descricao : default,
+                    Quantidade = row.Cell(3).TryGetValue<decimal>(out var quantidade) ? quantidade : default,
+                    Valor = row.Cell(4).TryGetValue<decimal>(out var valorUnitario) ? valorUnitario : default,
+                    ValorTotal = row.Cell(5).TryGetValue<decimal>(out var valorTotal) ? valorTotal : default
+                }).ToList();
                 
-    //             boaSolucao.AddRange(fileData ?? new List<BoaSolucao>());
-    //         }
-    //     }
+                boaSolucao.AddRange(fileData ?? new List<BoaSolucao>());
+            }
+        }
 
-    //     return boaSolucao;
-    // }
+        return boaSolucao;
+    }
 
 }
