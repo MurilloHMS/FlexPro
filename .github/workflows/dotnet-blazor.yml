@@ -34,6 +34,7 @@ jobs:
         with:
           branch: gh-pages  # A branch onde o site será publicado
           folder: ./publish/wwwroot  # O diretório com os arquivos compilados
+          token: ${{ secrets.GH_TOKEN}}
           
       # Configura o cache (opcional) para acelerar os builds
       - name: Cache .NET
