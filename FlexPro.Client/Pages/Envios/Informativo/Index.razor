@@ -1,0 +1,329 @@
+@page "/Envios/Informativo"
+@using System.Net.Http.Headers
+
+<PageTitle>Informativo Clientes</PageTitle>
+
+<MudPaper>
+    <MudStepper NonLinear CenterLabels OnPreviewInteraction="OnPreviewInteraction">
+        <MudStep Title="Passo 1" SecondaryText="Envio da planilha com os dados das notas fiscais" HasError="@(_passo1Error == true)">
+            <MudText>Faça o upload da planilha com os dados da nota fiscal para validar os dados.</MudText>
+            <MudFileUpload T="IBrowserFile" FilesChanged="UploadDadosNfe" Accept=".xlsx" MaximumFileCount="1">
+                <ActivatorContent>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">Upload File</MudButton>
+                </ActivatorContent>
+            </MudFileUpload>
+        </MudStep>
+        <MudStep Title="Passo 2" SecondaryText="Envio da planilha com os dados das Ordens de serviço" HasError="@(_passo2Error == true)">
+            <MudText>Faça o upload da planilha com os dados das ordens de serviço</MudText>
+            <MudFileUpload T="IBrowserFile" FilesChanged="UploadDadosOs" Accept=".xlsx" MaximumFileCount="1">
+                <ActivatorContent>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">Upload File</MudButton>
+                </ActivatorContent>
+            </MudFileUpload>
+        </MudStep>
+        <MudStep Title="Passo 3" SecondaryText="Envio da planilha com os dados das peças trocadas" HasError="@(_passo3Error == true)">
+            <MudText>Faça o upload da planilha com os dados das peças trocadas</MudText>
+            <MudFileUpload T="IBrowserFile" FilesChanged="UploadDadosPecasTrocadas" Accept=".xlsx" MaximumFileCount="1">
+                <ActivatorContent>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">Upload File</MudButton>
+                </ActivatorContent>
+            </MudFileUpload>
+        </MudStep>
+        <MudStep Title="Passo 4" SecondaryText="Validação">
+            <MudText>Selecione os clientes aprovados para enviar o e-mail</MudText>
+            <MudDataGrid T="Informativo" MultiSelection="true" Items="_informativos" SortMode="SortMode.Multiple" Filterable="true" Hideable="true" SelectedItemsChanged="@SelectedItemsChanged">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Informativo Clientes</MudText>
+                    <MudSpacer/>
+                    <MudTextField @bind-Value="_searchString" Placeholder="Buscar Cliente" Adornment="Adornment.Start" Immediate="true" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                </ToolBarContent>
+                <Columns>
+                    <SelectColumn T="Informativo"/>
+                    <PropertyColumn Property="x => x.CodigoCliente" Title="Cód Cliente"/>
+                    <PropertyColumn Property="x => x.NomeDoCliente" Title="Cliente"/>
+                    <PropertyColumn Property="x => x.ProdutoEmDestaque" Title="Produto em Destaque"/>
+                    <PropertyColumn Property="x => x.QuantidadeDeProdutos" Title="Quantidade Produtos"/>
+                    <PropertyColumn Property="x => x.QuantidadeDeLitros" Title="Quantidade de Litros"/>
+                    <PropertyColumn Property="x => x.QuantidadeNotasEmitidas" Title="Quant. Notas Emitidas"/>
+                    <PropertyColumn Property="x => x.ValorDePeçasTrocadas" Title="Valor de peças Trocadas"/>
+                    <PropertyColumn Property="x => x.MediaDiasAtendimento" Title="Média de dias"/>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="Informativo"></MudDataGridPager>
+                </PagerContent>
+            </MudDataGrid>
+            <MudButton OnClick="@(() => AtualizarDadosDaTabela())" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Update">Atualizar Tabela</MudButton>
+            <MudButton OnClick="@(() => EnviarInformativos())" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Update">Confirmar @_clientesSelecionados.Count() clientes Selecionados</MudButton>
+        </MudStep>
+        <MudStep Title="Envio dos Emails" SecondaryText="Envie os e-mails para os clientes">
+            
+        </MudStep>
+    </MudStepper>
+</MudPaper>
+@code {
+    [Inject]
+    IDialogService DialogService { get; set; }
+    
+    [Inject]
+    HttpClient Http { get; set; }
+    
+    [Inject]
+    ISnackbar Snackbar { get; set; }
+    
+    
+    private bool _passo1 = false;
+    private bool _passo2 = false;
+    private bool _passo3 = false;
+    private bool _isValid = false;
+    
+    //erros variables
+    private bool _passo1Error = false;
+    private bool _passo2Error = false;
+    private bool _passo3Error = false;
+
+    private IBrowserFile planilhaDadosNfe;
+    private IBrowserFile planilhaDadosOs;
+    private IBrowserFile planilhaDadosPecasTrocadas;
+
+    private IEnumerable<Informativo> _informativos = new List<Informativo>();
+    private IEnumerable<InformativoNFe> _informativoNFe = new List<InformativoNFe>();
+    private IEnumerable<InformativoOS> _informativoOs = new List<InformativoOS>();
+    private IEnumerable<InformativoPecasTrocadas> _informativoPecasTrocadas = new List<InformativoPecasTrocadas>();
+
+    private IEnumerable<Informativo> _clientesSelecionados = new List<Informativo>();
+    private string _searchString;
+    
+    #region Controladores UploadFile
+
+    private async void UploadDadosNfe(IBrowserFile file)
+    {
+        planilhaDadosNfe = file;
+        var content = new MultipartFormDataContent();
+        if (planilhaDadosNfe != null)
+        {
+            var fileContent = new StreamContent(planilhaDadosNfe.OpenReadStream());
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            
+            content.Add(fileContent, "file", planilhaDadosNfe.Name);
+        }
+
+        var response = await Http.PostAsync("api/Informativo/upload/nfe", content);
+        if (response.IsSuccessStatusCode)
+        {
+            _informativoNFe = await response.Content.ReadFromJsonAsync<List<InformativoNFe>>();
+            if (_informativoNFe.Any())
+            {
+                Snackbar.Add($"Dados Coletados com Sucesso! Proximo passo liberado.", Severity.Success);
+                _passo1 = true;
+            }else
+            {
+                _passo1Error = true;
+                Snackbar.Add($"Ocorreu um erro ao coletar os dados: {response.RequestMessage}", Severity.Error);
+            }
+        }
+    }
+
+    private async void UploadDadosOs(IBrowserFile file)
+    {
+        planilhaDadosOs = file;
+        var content = new MultipartFormDataContent();
+        if (planilhaDadosOs != null)
+        {
+            var fileContent = new StreamContent(planilhaDadosOs.OpenReadStream());
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            
+            content.Add(fileContent, "file", planilhaDadosOs.Name);
+        }
+
+        var response = await Http.PostAsync("api/Informativo/upload/os", content);
+        if (response.IsSuccessStatusCode)
+        {
+            _informativoOs = await response.Content.ReadFromJsonAsync<List<InformativoOS>>();
+            if (_informativoOs.Any())
+            {
+                Snackbar.Add($"Dados Coletados com Sucesso! Proximo passo liberado.", Severity.Success);
+                _passo2 = true;
+            }else
+            {
+                _passo2Error = true;
+                Snackbar.Add($"Ocorreu um erro ao coletar os dados: {response.RequestMessage}", Severity.Error);
+            }
+        }
+    }
+
+    private async void UploadDadosPecasTrocadas(IBrowserFile file)
+    {
+        planilhaDadosPecasTrocadas = file;
+        var content = new MultipartFormDataContent();
+        if (planilhaDadosPecasTrocadas != null)
+        {
+            var fileContent = new StreamContent(planilhaDadosPecasTrocadas.OpenReadStream());
+            fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            
+            content.Add(fileContent, "file", planilhaDadosPecasTrocadas.Name);
+        }
+
+        var response = await Http.PostAsync("api/Informativo/upload/pecasTrocadas", content);
+        if (response.IsSuccessStatusCode)
+        {
+            _informativoPecasTrocadas = await response.Content.ReadFromJsonAsync<List<InformativoPecasTrocadas>>();
+            if (_informativoPecasTrocadas.Any())
+            {
+                Snackbar.Add($"Dados Coletados com Sucesso! Proximo passo liberado.", Severity.Success);
+                _passo3 = true;
+            }else
+            {
+                _passo3Error = true;
+                Snackbar.Add($"Ocorreu um erro ao coletar os dados: {response.RequestMessage}", Severity.Error);
+            }
+        }
+    }
+    #endregion
+
+    #region Controles etapa validação
+
+
+    private async Task AtualizarDadosDaTabela()
+    {
+        DadosRequest request = new DadosRequest()
+        {
+            InformativoNFes = (List<InformativoNFe>)_informativoNFe,
+            informativoOs = (List<InformativoOS>)_informativoOs,
+            InformativoPecasTrocadas = (List<InformativoPecasTrocadas>)_informativoPecasTrocadas
+        };
+
+        var response = await Http.PostAsJsonAsync<DadosRequest>("api/Informativo/calcular",request);
+        if (response.IsSuccessStatusCode)
+        {
+            _informativos = await response.Content.ReadFromJsonAsync<List<Informativo>>();
+        }
+        else
+        {
+            Snackbar.Add($"Ocorreu um erro ao montar os dados dos informativos: {response.RequestMessage}", Severity.Error);
+        }
+    }
+
+    void SelectedItemsChanged(HashSet<Informativo> items)
+    {
+        _clientesSelecionados = items;
+    }
+
+    #endregion
+    
+    #region Envios
+
+    private async Task EnviarInformativos()
+    {
+        try
+        {
+            if (!_clientesSelecionados.Any())
+            {
+                Snackbar.Add("Nenhum Cliente selecionado, certifique-se de selecionar pelo menos 1 cliente da lista", Severity.Warning);
+                return;
+            }
+            
+            var response = await Http.PostAsJsonAsync<IEnumerable<Informativo>>("api/Email/send/informativos", _clientesSelecionados);
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Informativos enviados com sucesso", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add($"Ocorreu um erro ao enviar os informativos: {response.RequestMessage}", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {   
+            Snackbar.Add($"Ocorreu um erro desconhecido: {ex.Message}\n\n stackTrace : {ex.StackTrace}", Severity.Error);
+        }
+    }
+    #endregion
+    
+    #region controles dos steps 
+    private async Task OnPreviewInteraction(StepperInteractionEventArgs arg)
+    {
+        if (arg.Action == StepAction.Complete)
+        {
+            await ControlStepCompletion(arg);
+        }else if (arg.Action == StepAction.Activate)
+        {
+            await ControlStepNavigation(arg);
+        }
+    }
+
+    private async Task ControlStepCompletion(StepperInteractionEventArgs arg)
+    {
+        switch (arg.StepIndex)
+        {
+            case 0:
+                if (_passo1 != true)
+                {
+                    await DialogService.ShowMessageBox("Error", "Você precisa enviar o arquivo da nota fiscal!");
+                    arg.Cancel = true;
+                }
+                break;
+            
+            case 1:
+                if (_passo2 != true)
+                {
+                    await DialogService.ShowMessageBox("Error", "Você precisa enviar os dados das Ordens de serviço!");
+                    arg.Cancel = true;
+                }
+                break;
+            case 2:
+                if (_passo3 != true)
+                {
+                    await DialogService.ShowMessageBox("Error", "Você precisa enviar os dados das peças trocadas!");
+                    arg.Cancel = true;
+                }
+                break;
+            case 3:
+                if (_isValid != true)
+                {
+                    await DialogService.ShowMessageBox("Error", "Você precisa validar os dados!");
+                    arg.Cancel = true;
+                }
+                break;
+        }
+    }
+
+    private async Task ControlStepNavigation(StepperInteractionEventArgs arg)
+    {
+        switch (arg.StepIndex)
+        {
+            case 1:
+                if (_passo1 != true)
+                {
+                    await DialogService.ShowMessageBox("Error", "Calma ai apressadinho! complete o passo 1 primeiro!");
+                    arg.Cancel = true;
+                }
+                break;
+            
+            case 2:
+                if (_passo2 != true)
+                {
+                    await DialogService.ShowMessageBox("Error", "Calma ai apressadinho! complete o passo 2 primeiro!");
+                    arg.Cancel = true;
+                }
+                break;
+            case 3:
+                if (_passo3 != true)
+                {
+                    await DialogService.ShowMessageBox("Error", "Calma ai apressadinho! complete o passo 3 primeiro!");
+                    arg.Cancel = true;
+                }
+                break;
+            case 4:
+                if (_isValid != true)
+                {
+                    await DialogService.ShowMessageBox("Error", "Calma ai apressadinho! complete a validação primeiro!");
+                    arg.Cancel = true;
+                }
+                break;
+        }
+    }
+    
+    #endregion
+    
+    
+}

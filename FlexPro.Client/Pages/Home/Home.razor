@@ -2,6 +2,73 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<AuthorizeView>
+    <NotAuthorized>
+        <MudText Typo="Typo.h2" Align="Align.Center">Bem vindo ao FlexPro</MudText>
+        <MudText Typo="Typo.h6" Align="Align.Center">WebApp Desenvolvido para agrupar ferramentas que auxiliam o trabalho na Proauto Kimium</MudText>
+    </NotAuthorized>
+    <Authorized>
+        <MudTabs Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+            <MudTabPanel Text="Abastecimento">
+                <MudGrid>
+                    <MudItem xs="12" sm="3">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudText Align="Align.Center" Style="font-weight: bold;">Total Abastecido</MudText>
+                                <MudText Align="Align.Center">14.56K</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                    <MudItem xs="12" sm="3">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudText Align="Align.Center" Style="font-weight: bold;">Total Média Km/L</MudText>
+                                <MudText Align="Align.Center">12.91</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                    <MudItem xs="12" sm="3">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudText Align="Align.Center" Style="font-weight: bold;">Total Gasto</MudText>
+                                <MudText Align="Align.Center">83.82k</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                    <MudItem xs="12" sm="3">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudText Align="Align.Center" Style="font-weight: bold;">Total Km Percorrido</MudText>
+                                <MudText Align="Align.Center">184.28K</MudText>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+                <MudGrid Style="margin-top: 15px;">
+                    <MudItem xs="12" sm="8">
+                        <MudPaper Class="doc-section-component-container">
+                            <MudChart ChartType="ChartType.Bar" ChartSeries="@_series" XAxisLabels="@_xAxisLabels" Width="@_width" Height="@_height" ></MudChart>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid> 
+            </MudTabPanel>
+            <MudTabPanel Text="Veículos">
+                
+            </MudTabPanel>
+        </MudTabs>
+    </Authorized>
+</AuthorizeView>
 
-Welcome to your new app.
+@code {
+    private int _index = -1; //default value cannot be 0 -> first selectedindex is 0.
+    private string _width = "650px";
+    private string _height = "350px";
+
+    private List<ChartSeries> _series = new List<ChartSeries>()
+    {
+        new ChartSeries() { Name = "Restaurantes", Data = new double[] { 40, 20, 25, 27, 46, 60, 48, 80, 15 } },
+        new ChartSeries() { Name = "Lavanderia", Data = new double[] { 19, 24, 35, 13, 28, 15, 13, 16, 31 } },
+        new ChartSeries() { Name = "Automotivo", Data = new double[] { 8, 6, 11, 13, 4, 16, 10, 16, 18 } },
+    };
+    private string[] _xAxisLabels = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep" };
+}

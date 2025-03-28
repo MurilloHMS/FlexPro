@@ -15,7 +15,7 @@ builder.Services.AddScoped(sp =>
 {
     var client = new HttpClient
     {
-        BaseAddress = new Uri("https://10.0.4.200:5001")
+        BaseAddress = new Uri("http://10.0.4.200:5000")
     };
     return client;
 });
@@ -25,7 +25,7 @@ builder.Services.AddMudServices();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<LocalStorageService>();
 
-// autenticação
+// autenticaï¿½ï¿½o
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
 builder.Services.AddScoped<IAuthorizationService, DefaultAuthorizationService>();
