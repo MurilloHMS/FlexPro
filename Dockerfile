@@ -11,5 +11,6 @@ RUN dotnet publish -c Release -o out
 FROM nginx:alpine
 WORKDIR /app
 EXPOSE 8080
+EXPOSE 8081
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY --from=build /app/out/wwwroot /usr/share/nginx/html
