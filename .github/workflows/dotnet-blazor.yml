@@ -26,14 +26,14 @@ jobs:
 
       # Build do projeto Blazor
       - name: Build Blazor project
-        run: dotnet publish -c Release -o ./publish
+        run: dotnet publish -c Release -o ./docs
 
       # Configurar o GitHub Pages
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages  # A branch onde o site será publicado
-          folder: ./publish/wwwroot  # O diretório com os arquivos compilados
+          folder: ./docs/wwwroot  # O diretório com os arquivos compilados
           token: ${{ secrets.GH_TOKEN}}
           
       # Configura o cache (opcional) para acelerar os builds
