@@ -3,14 +3,14 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - master  # ou a branch que você deseja que dispare o deploy (por exemplo, master)
+      - main  # Ajuste a branch se necessário (ex: master)
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout o código do repositório
+      # Checkout do código do repositório
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -24,18 +24,22 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
-      # Build do projeto Blazor
+      # Limpar o diretório docs (caso existam arquivos antigos)
+      - name: Clean docs directory
+        run: rm -rf docs/*
+
+      # Build do projeto Blazor e saída no diretório docs
       - name: Build Blazor project
         run: dotnet publish -c Release -o ./docs
 
-      # Configurar o GitHub Pages
+      # Configurar o deploy para GitHub Pages
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages  # A branch onde o site será publicado
-          folder: ./docs/wwwroot  # O diretório com os arquivos compilados
-          token: ${{ secrets.GH_TOKEN}}
-          
+          folder: ./docs/wwwroot 
+          token: ${{ secrets.GH_TOKEN }}
+
       # Configura o cache (opcional) para acelerar os builds
       - name: Cache .NET
         uses: actions/cache@v3
