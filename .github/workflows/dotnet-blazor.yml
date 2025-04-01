@@ -3,44 +3,63 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - master 
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout do código do repositório
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Instalar o .NET SDK (ajustado para .NET 9)
       - name: Set up .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '9.0'  # Versão do .NET 9.0
+          dotnet-version: '9.0'
 
-      # Restaurar dependências do Blazor
       - name: Restore dependencies
         run: dotnet restore
 
-      # Limpar o diretório docs (caso existam arquivos antigos)
       - name: Clean docs directory
         run: rm -rf docs/*
 
-      # Build do projeto Blazor e saída no diretório docs
       - name: Build Blazor project
         run: dotnet publish -c Release -o ./docs
 
-      # Configurar o deploy para GitHub Pages
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Rewrite base href
+        uses: SteveSandersonMS/ghaction-rewrite-base-href@v1
         with:
-          branch: gh-pages  # A branch onde o site será publicado
-          folder: ./docs/wwwroot 
+          html_path: ./docs/index.html
+          base_href: /blazor-samples/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs/wwwroot
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          branch: gh-pages  o
+          folder: ./docs/wwwroot
           token: ${{ secrets.GH_TOKEN }}
 
-      # Configura o cache (opcional) para acelerar os builds
+     
       - name: Cache .NET
         uses: actions/cache@v3
         with:
