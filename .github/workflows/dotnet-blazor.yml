@@ -3,72 +3,62 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - master  # Executa quando houver push para a branch master
-  workflow_dispatch:  # Permite a execução manual do workflow via Actions tab
+      - master
+  workflow_dispatch:
 
 permissions:
-  contents: read  # Permissão para leitura do conteúdo do repositório
-  pages: write  # Permissão para escrever no GitHub Pages
-  id-token: write  # Permissão para utilizar o ID Token
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: "pages"  # Garante que apenas uma implantação ocorra por vez
-  cancel-in-progress: false  # Não cancela implantações em andamento
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # Roda no Ubuntu mais recente
+    runs-on: ubuntu-latest
 
     steps:
-      # Checkout do código do repositório
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Instalar o .NET SDK (ajustado para .NET 9)
       - name: Set up .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0'
 
-      # Restaurar dependências do Blazor
       - name: Restore dependencies
         run: dotnet restore
 
-      # Limpar o diretório docs (caso existam arquivos antigos)
       - name: Clean docs directory
         run: rm -rf docs/*
 
-      # Build do projeto Blazor e saída no diretório docs
-      - name: Build Blazor project
-        run: dotnet publish -c Release -o ./docs
+      - name: Build FlexPro.Client project
+        run: dotnet publish FlexPro.Client -c Release -o ./docs
 
-      # Se necessário, reescreve o base href (remover se não for necessário)
       - name: Rewrite base href
         uses: SteveSandersonMS/ghaction-rewrite-base-href@v1
         with:
           html_path: ./docs/index.html
-          base_href: /blazor-samples/  # Ajuste o subdiretório, se necessário
+          base_href: /flexpro-client/
 
-      # Configurar o deploy para GitHub Pages
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # Fazer upload do artefato gerado para o GitHub Pages
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./docs/wwwroot
 
-      # Realizar o deploy para GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
         with:
-          branch: gh-pages  # A branch onde o site será publicado
+          branch: gh-pages
           folder: ./docs/wwwroot
-          token: ${{ secrets.GH_TOKEN }}  # Token de acesso do GitHub (armazenado nos Secrets)
+          token: ${{ secrets.GH_TOKEN }}
 
-      # Cache .NET (opcional, pode acelerar builds futuros)
       - name: Cache .NET
         uses: actions/cache@v3
         with:
