@@ -10,12 +10,18 @@
     <Authorized>
         <MudTabs Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
             <MudTabPanel Text="Abastecimento">
+                <MudPaper Elevation="2">
+                    <MudToolBar>
+                        <MudIconButton Icon="@Icons.Material.Outlined.Autorenew" Color="Color.Inherit" class="mr-5" OnClick="() => UpdateFuelSupply()"/>
+                    </MudToolBar>
+                </MudPaper>
+                <br><br>
                 <MudGrid>
                     <MudItem xs="12" sm="3">
                         <MudCard>
                             <MudCardContent>
                                 <MudText Align="Align.Center" Style="font-weight: bold;">Total Abastecido</MudText>
-                                <MudText Align="Align.Center">14.56K</MudText>
+                                <MudText Align="Align.Center">@_totalAbastecido.ToString("N0")</MudText>
                             </MudCardContent>
                         </MudCard>
                     </MudItem>
@@ -23,7 +29,7 @@
                         <MudCard>
                             <MudCardContent>
                                 <MudText Align="Align.Center" Style="font-weight: bold;">Total Média Km/L</MudText>
-                                <MudText Align="Align.Center">12.91</MudText>
+                                <MudText Align="Align.Center">@_mediaKmPorLitro.ToString("F2")</MudText>
                             </MudCardContent>
                         </MudCard>
                     </MudItem>
@@ -31,7 +37,7 @@
                         <MudCard>
                             <MudCardContent>
                                 <MudText Align="Align.Center" Style="font-weight: bold;">Total Gasto</MudText>
-                                <MudText Align="Align.Center">83.82k</MudText>
+                                <MudText Align="Align.Center">@_totalGasto.ToString("C")</MudText>
                             </MudCardContent>
                         </MudCard>
                     </MudItem>
@@ -39,18 +45,26 @@
                         <MudCard>
                             <MudCardContent>
                                 <MudText Align="Align.Center" Style="font-weight: bold;">Total Km Percorrido</MudText>
-                                <MudText Align="Align.Center">184.28K</MudText>
+                                <MudText Align="Align.Center">@_totalKmPercorrido.ToString("N0")</MudText>
                             </MudCardContent>
                         </MudCard>
                     </MudItem>
-                </MudGrid>
-                <MudGrid Style="margin-top: 15px;">
-                    <MudItem xs="12" sm="8">
-                        <MudPaper Class="doc-section-component-container">
-                            <MudChart ChartType="ChartType.Bar" ChartSeries="@_series" XAxisLabels="@_xAxisLabels" Width="@_width" Height="@_height" ></MudChart>
+                    <MudItem xs="12" sm="4">
+                        <MudPaper Elevation="1">
+                            <MudText Typo="Typo.body1" Align="Align.Center">Top 5 Maiores consumos</MudText>
                         </MudPaper>
                     </MudItem>
-                </MudGrid> 
+                    <MudItem xs="12" sm="4">
+                        <MudPaper Elevation="1">
+                            <MudText Typo="Typo.body1" Align="Align.Center">Top 5 Maiores gastos</MudText>
+                        </MudPaper>
+                    </MudItem>
+                    <MudItem xs="12" sm="4">
+                        <MudPaper Elevation="1">
+                            <MudText Typo="Typo.body1" Align="Align.Center">Top 5 Maiores distancias percorridas</MudText>
+                        </MudPaper>
+                    </MudItem>
+                </MudGrid>
             </MudTabPanel>
             <MudTabPanel Text="Veículos">
                 
@@ -60,15 +74,23 @@
 </AuthorizeView>
 
 @code {
-    private int _index = -1; //default value cannot be 0 -> first selectedindex is 0.
-    private string _width = "650px";
-    private string _height = "350px";
+    [Inject]
+    private HttpClient Http { get; set; }
 
-    private List<ChartSeries> _series = new List<ChartSeries>()
+    private double _totalAbastecido = default;
+    private double _mediaKmPorLitro = default;
+    private decimal _totalGasto = default;
+    private double _totalKmPercorrido = default;
+
+    private async Task UpdateFuelSupply()
     {
-        new ChartSeries() { Name = "Restaurantes", Data = new double[] { 40, 20, 25, 27, 46, 60, 48, 80, 15 } },
-        new ChartSeries() { Name = "Lavanderia", Data = new double[] { 19, 24, 35, 13, 28, 15, 13, 16, 31 } },
-        new ChartSeries() { Name = "Automotivo", Data = new double[] { 8, 6, 11, 13, 4, 16, 10, 16, 18 } },
-    };
-    private string[] _xAxisLabels = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep" };
+        var fuelSupply = await Http.GetFromJsonAsync<List<Abastecimento>>("api/abastecimento");
+        if (!fuelSupply.Any())
+            return;
+
+        _totalAbastecido = fuelSupply.Sum(a => a.Litros);
+        _mediaKmPorLitro = fuelSupply.Average(a => a.MediaKm);
+        _totalGasto = fuelSupply.Sum(a => a.ValorTotalTransacao);
+        _totalKmPercorrido = fuelSupply.Sum(a => a.DiferencaHodometro);
+    }
 }
