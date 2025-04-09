@@ -15,7 +15,7 @@ builder.Services.AddScoped(sp =>
 {
     var client = new HttpClient
     {
-        BaseAddress = new Uri("http://10.0.4.200:5000")
+        BaseAddress = new Uri("https://flexpro-api.onrender.com")
     };
     return client;
 });
