@@ -54,18 +54,31 @@
         {
             if (cliente is not null)
             {
-                await Http.PutAsJsonAsync("api/clientes", _cliente);
-                Snackbar.Add("Cliente Atualizado com Sucesso!", Severity.Success);
+                var response = await Http.PutAsJsonAsync($"api/clientes/{_cliente.Id}", _cliente);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Cliente Atualizado com Sucesso!", Severity.Success);
+                }else 
+                { 
+                    Snackbar.Add($"Ocorreu um erro ao atualizar o produto! {response.StatusCode} : {response.RequestMessage}", Severity.Error); 
+                }
             }
             else
             {
-                await Http.PostAsJsonAsync("api/clientes", _cliente);
-                Snackbar.Add("Cliente cadastrado com Sucesso!", Severity.Success);
+                var response = await Http.PostAsJsonAsync("api/clientes", _cliente);
+                if (response.IsSuccessStatusCode)
+                {
+                    Snackbar.Add("Cliente Cadastrado com Sucesso!", Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add($"Ocorreu um erro ao Cadastrar o produto! {response.StatusCode} : {response.RequestMessage}", Severity.Error);
+                }
             }
         }
         catch (Exception e)
         {
-            Snackbar.Add($"Ocorreu um erro ao cadastrar o cliente: {e.Message}", Severity.Error);
+            Snackbar.Add($"Ocorreu um erro desconhecido: {e.Message}", Severity.Error);
         }
         
         MudDialog?.Close(DialogResult.Ok(_cliente));
