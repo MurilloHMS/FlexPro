@@ -3,6 +3,7 @@
   "short_name": "FlexPro",
   "id": "/FlexPro/",
   "start_url": "/FlexPro/",
+  "scope": "/FlexPro/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#03173d",
