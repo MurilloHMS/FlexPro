@@ -1,9 +1,9 @@
 {
   "name": "FlexPro",
   "short_name": "FlexPro",
-  "id": "https://murillohms.github.io/FlexPro/",
-  "start_url": "https://murillohms.github.io/FlexPro/",
-  "scope": "https://murillohms.github.io/FlexPro/",
+  "id": "/FlexPro/",
+  "start_url": "/FlexPro/",
+  "scope": "/FlexPro/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#03173d",

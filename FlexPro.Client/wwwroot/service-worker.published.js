@@ -9,7 +9,7 @@ const offlineAssetsInclude = [ /\.dll$/, /\.pdb$/, /\.wasm/, /\.html$/, /\.js$/,
 const offlineAssetsExclude = [ /^service-worker\.js$/ ];
 
 // Subdiretório base no GitHub Pages
-const base = "https://murillohms.github.io/FlexPro/";
+const base = "/FlexPro/";
 const baseUrl = new URL(base, self.origin);
 const manifestPaths = self.assetsManifest.assets.map(asset => new URL(asset.url, baseUrl).pathname);
 
