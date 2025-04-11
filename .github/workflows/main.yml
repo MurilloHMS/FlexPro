@@ -41,7 +41,7 @@ jobs:
         run: dotnet build -c Release --no-restore
         
       - name: Publish .NET
-        run: dotnet publish FlexPro.Client/FlexPro.Client.csproj -c:Release -o docs --nologo
+        run: dotnet publish FlexPro.Client/FlexPro.Client.csproj -c:Release -o docs --nologo /p:BasePath=/flexpro
         
       - name: Add .nojekyll
         run: touch docs/.nojekyll
