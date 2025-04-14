@@ -1,59 +1,20 @@
-name: Deploy
-
-on: 
+name: Deploy to GitHub Pages
+on:
   push:
-    branches: ["master"]
-  
-  workflow_dispatch:
-    
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-  
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-  
+    branches: [ main ]
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        
+      - uses: actions/checkout@v3
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: 9.0.x
-          
-          
-      - name: Install .NET Wasm Tools
-        run: dotnet workload install wasm-tools
-        
-      - name: Restore Dependencies
-        run: dotnet restore
-        
-      - name: Build
-        run: dotnet build -c Release --no-restore
-        
-      - name: Publish .NET
-        run: dotnet publish FlexPro.Client/FlexPro.Client.csproj -c:Release -o docs --nologo 
-        
-      - name: Add .nojekyll
-        run: touch docs/.nojekyll
-        
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-        
-      - name: Upload
-        uses: actions/upload-pages-artifact@v3
+          dotnet-version: '9.0.x'
+      - name: Publish
+        run: dotnet publish -c Release -o publish
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          path: 'docs/wwwroot'
-      
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
+          branch: gh-pages
+          folder: publish/wwwroot
