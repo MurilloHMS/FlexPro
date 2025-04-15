@@ -24,7 +24,7 @@ namespace FlexPro.Client.Services
 
         public async Task<string> Login(LoginModel loginModel)
         {
-            var response = await _httpClient.PostAsJsonAsync("login", loginModel);
+            var response = await _httpClient.PostAsJsonAsync("api/auth/login", loginModel);
 
             if(response.IsSuccessStatusCode)
             {
@@ -41,7 +41,7 @@ namespace FlexPro.Client.Services
 
         public async Task<bool> Register(RegisterModel registerModel)
         {
-            var response = await _httpClient.PostAsJsonAsync("register", registerModel);
+            var response = await _httpClient.PostAsJsonAsync("api/auth/register", registerModel);
             return response.IsSuccessStatusCode;
         }
 
@@ -53,7 +53,7 @@ namespace FlexPro.Client.Services
         public async Task Logout()
         {
             await _localStorageService.RemoveItemAsync("authToken");
-            _navigationManager.NavigateTo("/login");
+            _navigationManager.NavigateTo("/FlexPro/Account/Login");
         }
     }
 }
