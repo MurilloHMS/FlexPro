@@ -2,8 +2,8 @@ name: Deploy
 
 on:
   push:
-    branchs: ["master"]
-  
+    branches: ["master"]
+
   workflow_dispatch:
 
 permissions:
@@ -30,7 +30,6 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
-
       - name: Install .NET Wasm Tools
         run: dotnet workload install wasm-tools
 
@@ -41,7 +40,12 @@ jobs:
         run: dotnet build -c Release --no-restore
 
       - name: Publish .NET
-        run: dotnet publish FlexPro.Client/FlexPro.Client.csproj -c:Release -o docs --nologo
+        run: dotnet publish FlexPro.Client/FlexPro.Client.csproj -c Release -o publish --nologo
+
+      - name: Copy wwwroot to docs
+        run: |
+          mkdir docs
+          cp -r publish/wwwroot/* docs/
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -49,7 +53,7 @@ jobs:
       - name: Upload
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'docs/wwwroot'
+          path: 'docs'
 
       - name: Deploy
         id: deployment

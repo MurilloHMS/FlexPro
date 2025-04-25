@@ -1,8 +1,7 @@
 {
   "name": "FlexPro",
   "short_name": "FlexPro",
-  "id": "/",
-  "start_url": "/",
+  "start_url": "/flexpro/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#03173d",
