@@ -53,7 +53,7 @@ namespace FlexPro.Client.Services
         public async Task Logout()
         {
             await _localStorageService.RemoveItemAsync("authToken");
-            _navigationManager.NavigateTo("/FlexPro/Account/Login");
+            _navigationManager.NavigateTo("/Account/Login");
         }
     }
 }

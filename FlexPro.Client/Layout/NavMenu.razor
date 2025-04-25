@@ -8,28 +8,28 @@
         <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Página Inicial</MudNavLink>
         <AuthorizeView>
             <MudNavGroup Title="Cadastros" Expanded="false" Icon="@Icons.Material.Filled.Add">
-                <MudNavLink Href="/FlexPro/veiculos" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.DirectionsCar">Veículos</MudNavLink>
-                <MudNavLink Href="/FlexPro/funcionarios" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Group">Funcionários</MudNavLink>
-                <MudNavLink Href="/FlexPro/clientes" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.GroupAdd">Clientes</MudNavLink>
-                <MudNavLink Href="/FlexPro/categorias" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Category">Categorias</MudNavLink>
-                <MudNavLink Href="/FlexPro/entidades" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Business">Prestadores e Fornecedores</MudNavLink>
-                <MudNavLink Href="/FlexPro/revisoes" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.CarRepair">Revisões</MudNavLink>
-                <MudNavLink Href="/FlexPro/abastecimentos" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.LocalGasStation">Abastecimentos</MudNavLink>
-                <MudNavLink Href="/FlexPro/BoaSolucao" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Store">Boa Solução</MudNavLink>
+                <MudNavLink Href="/veiculos" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.DirectionsCar">Veículos</MudNavLink>
+                <MudNavLink Href="/funcionarios" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Group">Funcionários</MudNavLink>
+                <MudNavLink Href="/clientes" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.GroupAdd">Clientes</MudNavLink>
+                <MudNavLink Href="/categorias" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Category">Categorias</MudNavLink>
+                <MudNavLink Href="/entidades" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Business">Prestadores e Fornecedores</MudNavLink>
+                <MudNavLink Href="/revisoes" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.CarRepair">Revisões</MudNavLink>
+                <MudNavLink Href="/abastecimentos" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.LocalGasStation">Abastecimentos</MudNavLink>
+                <MudNavLink Href="/BoaSolucao" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Store">Boa Solução</MudNavLink>
             </MudNavGroup>
             <MudNavGroup Title="Ferramentas" Expanded="false" Icon="@Icons.Material.Filled.Build">
-                <MudNavLink Href="/FlexPro/separarPDF" Match="NavLinkMatch.All" Icon="@Icons.Custom.FileFormats.FilePdf">Separar PDF</MudNavLink>
-                <MudNavLink Href="/FlexPro/CalculoTransportadoras" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.EmojiTransportation">Calcular Transportadoras</MudNavLink>
-                <MudNavLink Href="/FlexPro/calcularICMS" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Calculate">Calcular Dados ICMS</MudNavLink>
-                <MudNavLink Href="/FlexPro/coletarDadosNotasFiscais" Match="NavLinkMatch.All" Icon="@Icons.Custom.FileFormats.FileCode">Coletar Dados Notas Fiscais</MudNavLink>
-                <MudNavLink Href="/FlexPro/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.CreditCard">Separar Dados Cartões</MudNavLink>
-                <MudNavLink Href="/FlexPro/RenomearNotas" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.DriveFileRenameOutline">Renomear Notas Fiscais</MudNavLink>
+                <MudNavLink Href="/separarPDF" Match="NavLinkMatch.All" Icon="@Icons.Custom.FileFormats.FilePdf">Separar PDF</MudNavLink>
+                <MudNavLink Href="/CalculoTransportadoras" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.EmojiTransportation">Calcular Transportadoras</MudNavLink>
+                <MudNavLink Href="/calcularICMS" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Calculate">Calcular Dados ICMS</MudNavLink>
+                <MudNavLink Href="/coletarDadosNotasFiscais" Match="NavLinkMatch.All" Icon="@Icons.Custom.FileFormats.FileCode">Coletar Dados Notas Fiscais</MudNavLink>
+                <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.CreditCard">Separar Dados Cartões</MudNavLink>
+                <MudNavLink Href="/RenomearNotas" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.DriveFileRenameOutline">Renomear Notas Fiscais</MudNavLink>
             </MudNavGroup>
             <MudNavGroup Title="Envios" Expanded="false" Icon="@Icons.Material.Filled.Send">
-                <MudNavLink Href="/FlexPro/Envios/Informativo" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Email">Enviar Informativo Clientes</MudNavLink>
+                <MudNavLink Href="/Envios/Informativo" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Email">Enviar Informativo Clientes</MudNavLink>
             </MudNavGroup>
             <MudNavGroup Title="Consultas" Expanded="false" Icon="@Icons.Material.Filled.Search">
-                <MudNavLink Href="/FlexPro/consulta/veiculo" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.DirectionsCar">Veiculos</MudNavLink>
+                <MudNavLink Href="/consulta/veiculo" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.DirectionsCar">Veiculos</MudNavLink>
             </MudNavGroup>
         </AuthorizeView>
         <AuthorizeView>
@@ -37,12 +37,12 @@
                 <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
                 @if(context.User?.Identity?.Name is "murillo.henrique@proautokimium.com.br")
                 {
-                    <MudNavLink Href="/FlexPro/Account/Register" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink>
+                    <MudNavLink Href="/Account/Register" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink>
                 }
-                <MudNavLink Href="/FlexPro/account/logout" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
+                <MudNavLink Href="/account/logout" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
             </Authorized>
             <NotAuthorized>
-                <MudNavLink Href="/FlexPro/Account/Login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Password">Login</MudNavLink>
+                <MudNavLink Href="/Account/Login" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Password">Login</MudNavLink>
             </NotAuthorized>
         </AuthorizeView>
     </MudNavMenu>
