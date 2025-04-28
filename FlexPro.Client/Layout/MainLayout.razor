@@ -5,11 +5,11 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 <MudLayout>
-    <MudAppBar Elevation="1" Dense="true" Color="Color.Primary">
+    <MudAppBar Elevation="1" Dense="true" Style="@($"background: {Colors.Gray.Darken3}")">
         <MudIconButton Edge="Edge.Start" OnClick="@((e) => DrawerToggle())">
-            <MudImage Src="assets/icons/proauto.ico" Width="30"></MudImage>
+            <MudImage Src="assets/icons/LogoFlexPro.ico" Width="30"></MudImage>
         </MudIconButton>
-        <MudText Typo="Typo.h6" Class="ml-3">Proauto</MudText>
+        <MudText Typo="Typo.h6" Class="ml-3">FlexPro</MudText>
         <MudSpacer />
         <MudSwitch @bind-Value="_isDarkMode" ThumbIcon="@(_isDarkMode==true ? Icons.Material.Filled.ModeNight : Icons.Material.Filled.LightMode)" Color="@(_isDarkMode==true ? Color.Dark : Color.Inherit)"></MudSwitch>
         <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Edge="Edge.End" Href="https://github.com/MurilloHMS" Target="_blank" />

@@ -5,6 +5,7 @@
 
 <MudPaper Elevation="0" Class="py-3">
     <MudNavMenu Color="Color.Primary">
+        <MudImage Src="assets/images/FlexPro.png" Alt="logo" Width="150" ObjectPosition="ObjectPosition.Center" Style="margin-left: 5px; margin-bottom: 10px"></MudImage>
         <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Página Inicial</MudNavLink>
         <AuthorizeView>
             <MudNavGroup Title="Cadastros" Expanded="false" Icon="@Icons.Material.Filled.Add">
@@ -35,7 +36,7 @@
         <AuthorizeView>
             <Authorized>
                 <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Person">@context.User.Identity?.Name</MudNavLink>
-                @if(context.User?.Identity?.Name is "murillo.henrique@proautokimium.com.br")
+                @if (context.User?.Identity?.Name is "murillo.henrique@proautokimium.com.br")
                 {
                     <MudNavLink Href="/Account/Register" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink>
                 }
